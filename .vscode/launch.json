@@ -1,0 +1,15 @@
+{
+  // 使用 IntelliSense 了解相关属性。
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "pms (Flutter 23049RAD8C)",
+      "program": "lib/main.dart",
+      "deviceId": "192.168.110.22:43143",
+      "request": "launch",
+      "type": "dart"
+    }
+  ]
+}
