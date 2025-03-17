@@ -3,41 +3,48 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
+import 'package:pms/utils/dash_to_map.dart';
 import 'package:pms/utils/export.dart';
 import 'package:pointycastle/export.dart';
 
-var _chain = DioChain(
-  headers: {
-    "Referer": "https://www.bilibili.com/",
-    "origin": "https://www.bilibili.com",
-    "sec-ch-ua": '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": '"Windows"',
-    "sec-fetch-dest": 'empty',
-    "sec-fetch-mode": "cors",
-    "sec-fetch-site": "same-site",
-  },
-  interceptor: (chain) async {
-    var cookieMap = Tool.parseCookie(chain.options.headers['cookie']);
-    var csrfToken = cookieMap['bili_jct'] ?? '';
-    chain.query({"csrf": csrfToken});
-    chain.send({"csrf": csrfToken});
-    var extra = chain.extra;
-    if (extra['imgKey'] is String && extra['subKey'] is String) {
-      var wbiParams = BiliApi.encodeWbi(chain.options.queryParameters, extra['imgKey'], extra['subKey']);
-      chain.query(wbiParams);
-    }
-    return (Response response) async {
-      var data = response.data;
+var _chain =
+    DioChain(
+      headers: {
+        "Referer": "https://www.bilibili.com/",
+        "origin": "https://www.bilibili.com",
+        "sec-ch-ua":
+            '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": 'empty',
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-site",
+      },
+      interceptor: (chain) async {
+        var cookieMap = Tool.parseCookie(chain.options.headers['cookie']);
+        var csrfToken = cookieMap['bili_jct'] ?? '';
+        chain.query({"csrf": csrfToken});
+        chain.send({"csrf": csrfToken});
+        var extra = chain.extra;
+        if (extra['imgKey'] is String && extra['subKey'] is String) {
+          var wbiParams = BiliApi.encodeWbi(
+            chain.options.queryParameters,
+            extra['imgKey'],
+            extra['subKey'],
+          );
+          chain.query(wbiParams);
+        }
+        return (Response response) async {
+          var data = response.data;
 
-      if (data is Map && data['code'] == -101) {
-        throw response;
-      }
+          if (data is Map && data['code'] == -101) {
+            throw response;
+          }
 
-      return response;
-    };
-  },
-).setUserAgent();
+          return response;
+        };
+      },
+    ).setUserAgent();
 
 class BiliApi {
   static DioChainResponse<int> getRefreshTime(String cookie) {
@@ -51,13 +58,16 @@ class BiliApi {
   }
 
   static String generateSecret(int timestampe) {
-    var publicKeyPem = "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDLgd2OAkcGVtoE3ThUREbio0Eg\nUc/prcajMKXvkCKFCWhJYJcLkcM2DKKcSeFpD/j6Boy538YXnR6VhcuUJOhH2x71\nnzPjfdTcqMz7djHum0qSZA0AyCBDABUqCrfNgCiJ00Ra7GmRj+YCK1NJEuewlb40\nJNrRuoEUXpabUzGB8QIDAQAB\n-----END PUBLIC KEY-----";
+    var publicKeyPem =
+        "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDLgd2OAkcGVtoE3ThUREbio0Eg\nUc/prcajMKXvkCKFCWhJYJcLkcM2DKKcSeFpD/j6Boy538YXnR6VhcuUJOhH2x71\nnzPjfdTcqMz7djHum0qSZA0AyCBDABUqCrfNgCiJ00Ra7GmRj+YCK1NJEuewlb40\nJNrRuoEUXpabUzGB8QIDAQAB\n-----END PUBLIC KEY-----";
     var publicKey = RSAKeyParser().parse(publicKeyPem) as RSAPublicKey;
-    final encrypter = Encrypter(RSA(
-      publicKey: publicKey,
-      encoding: RSAEncoding.OAEP,
-      digest: RSADigest.SHA256,
-    ));
+    final encrypter = Encrypter(
+      RSA(
+        publicKey: publicKey,
+        encoding: RSAEncoding.OAEP,
+        digest: RSADigest.SHA256,
+      ),
+    );
     final encrypted = encrypter.encrypt('refresh_$timestampe');
     return encrypted.base16;
   }
@@ -70,9 +80,14 @@ class BiliApi {
   }
 
   /// https://wasm-rsa.vercel.app/api/rsa?t=1684468084078
-  static DioChainResponse<String> getRefreshCode({required String secret, required String cookie}) {
+  static DioChainResponse<String> getRefreshCode({
+    required String secret,
+    required String cookie,
+  }) {
     var url = 'https://www.bilibili.com/correspond/1';
-    return _chain.get<String>('$url/$secret').setCookie(cookie).format((respone) {
+    return _chain.get<String>('$url/$secret').setCookie(cookie).format((
+      respone,
+    ) {
       var content = respone.data;
       if (content is String) {
         final regExp = RegExp(r'<div\s+id="1-name">(.+?)</div>');
@@ -91,7 +106,8 @@ class BiliApi {
     required String cookie,
     required String refreshToken,
   }) {
-    var url = 'https://passport.bilibili.com/x/passport-login/web/cookie/refresh';
+    var url =
+        'https://passport.bilibili.com/x/passport-login/web/cookie/refresh';
     return _chain
         .post<Map>(url)
         .query({
@@ -112,16 +128,85 @@ class BiliApi {
     required String newCookie,
     required String oldRefreshToken,
   }) {
-    var url = 'https://passport.bilibili.com/x/passport-login/web/confirm/refresh';
-    return _chain.post<Map>(url).query({
-      'refresh_token': oldRefreshToken,
-    }).setCookie(newCookie);
+    var url =
+        'https://passport.bilibili.com/x/passport-login/web/confirm/refresh';
+    return _chain
+        .post<Map>(url)
+        .query({'refresh_token': oldRefreshToken})
+        .setCookie(newCookie);
   }
 
   static encodeWbi(Map<String, dynamic> params, String imgKey, String subKey) {
-    const List<int> mixinKeyEncTab = [46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49, 33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13, 37, 48, 7, 16, 24, 55, 40, 61, 26, 17, 0, 1, 60, 51, 30, 4, 22, 25, 54, 21, 56, 59, 6, 63, 57, 62, 11, 36, 20, 34, 44, 52];
+    const List<int> mixinKeyEncTab = [
+      46,
+      47,
+      18,
+      2,
+      53,
+      8,
+      23,
+      32,
+      15,
+      50,
+      10,
+      31,
+      58,
+      3,
+      45,
+      35,
+      27,
+      43,
+      5,
+      49,
+      33,
+      9,
+      42,
+      19,
+      29,
+      28,
+      14,
+      39,
+      12,
+      38,
+      41,
+      13,
+      37,
+      48,
+      7,
+      16,
+      24,
+      55,
+      40,
+      61,
+      26,
+      17,
+      0,
+      1,
+      60,
+      51,
+      30,
+      4,
+      22,
+      25,
+      54,
+      21,
+      56,
+      59,
+      6,
+      63,
+      57,
+      62,
+      11,
+      36,
+      20,
+      34,
+      44,
+      52,
+    ];
 
-    var secret = imgKey.split('/').last.split('.').first + subKey.split('/').last.split('.').first;
+    var secret =
+        imgKey.split('/').last.split('.').first +
+        subKey.split('/').last.split('.').first;
 
     StringBuffer buffer = StringBuffer();
     for (int n in mixinKeyEncTab) {
@@ -139,7 +224,10 @@ class BiliApi {
 
     var query = queryList
         .map((key) {
-          String value = data[key].toString().replaceAll(RegExp(r"[!\'()*]"), '');
+          String value = data[key].toString().replaceAll(
+            RegExp(r"[!\'()*]"),
+            '',
+          );
           return '${Uri.encodeComponent(key)}=${Uri.encodeComponent(value)}';
         })
         .toList()
@@ -149,10 +237,7 @@ class BiliApi {
 
     var sign = md5.convert(utf8.encode(query + mixkey)).toString();
 
-    return {
-      "wts": time,
-      "w_rid": sign,
-    };
+    return {"wts": time, "w_rid": sign};
   }
 
   static DioChainResponse<BliTicket> getTicket(String cookie) {
@@ -164,15 +249,18 @@ class BiliApi {
     final hmac = Hmac(sha256, keyBytes);
     final digest = hmac.convert(messageBytes);
 
-    final hexSign = digest.bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+    final hexSign =
+        digest.bytes
+            .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+            .join();
 
-    var url = 'https://api.bilibili.com/bapis/bilibili.api.ticket.v1.Ticket/GenWebTicket';
+    var url =
+        'https://api.bilibili.com/bapis/bilibili.api.ticket.v1.Ticket/GenWebTicket';
 
-    return _chain.post<Map>(url).query({
-      "key_id": 'ec02',
-      "hexsign": hexSign,
-      'context[ts]': ts,
-    }).format(BliTicket.fromResponse);
+    return _chain
+        .post<Map>(url)
+        .query({"key_id": 'ec02', "hexsign": hexSign, 'context[ts]': ts})
+        .format(BliTicket.fromResponse);
   }
 
   static DioChainResponse<BliUser> getUserInfo(String cookie) {
@@ -251,11 +339,7 @@ class BiliApi {
     var url = 'https://api.bilibili.com/x/space/fav/season/list';
     return _chain
         .get(url)
-        .query({
-          "season_id": seasonId,
-          "pn": page,
-          "ps": limit,
-        })
+        .query({"season_id": seasonId, "pn": page, "ps": limit})
         .setCookie(cookie)
         .format(BliVideoPageInfo.fromResponse);
   }
@@ -265,7 +349,12 @@ class BiliApi {
     required String cookie,
   }) {
     var url = 'https://api.bilibili.com/x/player/pagelist';
-    return _chain.get<Map>(url).query({'bvid': bvid}).setCookie(cookie).setLocalCache(double.infinity).format(BliVideoSampleInfo.fromResponse);
+    return _chain
+        .get<Map>(url)
+        .query({'bvid': bvid})
+        .setCookie(cookie)
+        .setLocalCache(double.infinity)
+        .format(BliVideoSampleInfo.fromResponse);
   }
 
   static DioChainResponse<BliPlayInfo> getPlayInfo({
@@ -278,19 +367,30 @@ class BiliApi {
     var url = 'https://api.bilibili.com/x/player/wbi/playurl';
     return _chain
         .get(url)
-        .query({
-          "bvid": bvid,
-          "cid": cid,
-          "qn": 112,
-          "fnval": 16,
-        })
-        .setExtra({
-          "imgKey": imgKey,
-          "subKey": subKey,
-        })
+        .query({"bvid": bvid, "cid": cid, "qn": 112, "fnval": 16})
+        .setExtra({"imgKey": imgKey, "subKey": subKey})
         .setCookie(cookie)
         .setLocalCache(120 * 60 * 1000)
         .format(BliPlayInfo.fromResponse);
+  }
+
+  static DioChainResponse<DashHelper> getPlayDash({
+    required String bvid,
+    required int cid,
+    required String cookie,
+    required String imgKey,
+    required String subKey,
+  }) {
+    var url = 'https://api.bilibili.com/x/player/wbi/playurl';
+    return _chain
+        .get(url)
+        .query({"bvid": bvid, "cid": cid, "qn": 112, "fnval": 16})
+        .setExtra({"imgKey": imgKey, "subKey": subKey})
+        .setCookie(cookie)
+        .setLocalCache(120 * 60 * 1000)
+        .format((response) {
+          return DashHelper.formBili(response.data["data"]["dash"]);
+        });
   }
 
   static DioChainResponse<BliAlbum> getAlbumInfo({
@@ -300,9 +400,7 @@ class BiliApi {
     var url = 'https://api.bilibili.com/x/v3/fav/folder/info';
     return _chain
         .get<Map>(url)
-        .query({
-          "media_id": mediaId,
-        })
+        .query({"media_id": mediaId})
         .setCookie(cookie)
         .format(BliAlbum.fromResponse);
   }
@@ -311,9 +409,10 @@ class BiliApi {
     required String url,
     required String referer,
   }) {
-    return _chain.getStream(url).setHeaders({
-      "Connection": "keep-alive",
-    }).setReferer(referer);
+    return _chain
+        .getStream(url)
+        .setHeaders({"Connection": "keep-alive"})
+        .setReferer(referer);
   }
 
   static deleteFavVideo({
@@ -324,10 +423,7 @@ class BiliApi {
     var url = 'https://api.bilibili.com/x/v3/fav/resource/batch-del';
     return _chain
         .post<Map>(url)
-        .send({
-          "resources": resources.join(','),
-          "media_id": mediaId,
-        })
+        .send({"resources": resources.join(','), "media_id": mediaId})
         .setCookie(cookie)
         .headerFormUrlencoded();
   }
@@ -335,9 +431,10 @@ class BiliApi {
   static logout(String cookie) {
     var url = 'https://passport.bilibili.com/login/exit/v2';
     var cookieMap = Tool.parseCookie(cookie);
-    return _chain.post(url).send({
-      'biliCSRF': cookieMap['bili_jct'],
-    }).setCookie(cookie);
+    return _chain
+        .post(url)
+        .send({'biliCSRF': cookieMap['bili_jct']})
+        .setCookie(cookie);
   }
 }
 
@@ -380,8 +477,16 @@ class BliPlayInfo {
       duration: map.getInt(['timelength']),
       formatNames: map.getList<String>(['accept_description']),
       qualitys: map.getList<int>(['accept_quality']),
-      videos: map.getList(['dash', 'video']).map((item) => BliMediaInfo.fromMap(item)).toList(),
-      audios: map.getList(['dash', 'audio']).map((item) => BliMediaInfo.fromMap(item)).toList(),
+      videos:
+          map
+              .getList(['dash', 'video'])
+              .map((item) => BliMediaInfo.fromMap(item))
+              .toList(),
+      audios:
+          map
+              .getList(['dash', 'audio'])
+              .map((item) => BliMediaInfo.fromMap(item))
+              .toList(),
     );
   }
 }
@@ -507,7 +612,11 @@ class BliVideoPageInfo {
   late List<BliVideoInfo> medias;
   late int total;
 
-  BliVideoPageInfo({required this.hasMore, required this.medias, required this.total});
+  BliVideoPageInfo({
+    required this.hasMore,
+    required this.medias,
+    required this.total,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -598,10 +707,7 @@ class BliAlbumPageInfo {
   late int total;
   late List<BliAlbum> albums;
 
-  BliAlbumPageInfo({
-    required this.total,
-    required this.albums,
-  });
+  BliAlbumPageInfo({required this.total, required this.albums});
 
   Map<String, dynamic> toMap() {
     return {

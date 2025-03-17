@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -15,6 +17,8 @@ import 'package:video_player/video_player.dart';
 enum VideoCheckType { download, delete, addAlbum, upload, none }
 
 class VideoModelController extends GetxController {
+  AudioController _audioController = Get.find<AudioController>();
+
   RxList<MediaDbModel> videos = RxList<MediaDbModel>();
   var checkType = VideoCheckType.none.obs;
   var checkMaps = <String, MediaDbModel>{}.obs;
@@ -190,8 +194,6 @@ class VideoModelController extends GetxController {
       }
 
       _pageInfo['nextMarker'] = response.nextMarker;
-
-      Tool.log(_pageInfo['nextMarker']);
 
       if (response.nextMarker.isEmpty) {
         refreshController.loadNoData();
@@ -380,48 +382,51 @@ class VideoModelController extends GetxController {
   Future<void> handleAddAlbum(List<MediaDbModel> videos) async {
     var completer = Completer();
     Tool.showBottomSheet(
-      AlbumSelectComp(
-        isLocalPlatform: true,
-        type: MediaTagType.video,
-        excludes: [album.relationId],
-        onSelect: (album) async {
-          try {
-            EasyLoading.show(
-              status: '${"添加中".tr}...',
-              maskType: EasyLoadingMaskType.black,
-            );
-            List<int> ids = [...album.songIds];
-            MediaDbModel? first;
-            for (var media in videos) {
-              if (media.id == -1) {
-                var id = await MediaDbModel.insert(media);
-                media.id = id;
-              }
-              var index = ids.indexOf(media.id);
-              if (index == -1) {
-                ids.insert(0, media.id);
-                first = media;
-              }
-            }
-            if (first != null) {
-              var file = await Tool.cacheImg(
-                url: first.cover,
-                cacheKey: first.cacheKey,
+      SizedBox(
+        height: 800.w,
+        child: AlbumSelectComp(
+          isLocalPlatform: true,
+          type: MediaTagType.video,
+          excludes: [album.relationId],
+          onSelect: (album) async {
+            try {
+              EasyLoading.show(
+                status: '${"添加中".tr}...',
+                maskType: EasyLoadingMaskType.black,
               );
-              album.cover = file.path;
+              List<int> ids = [...album.songIds];
+              MediaDbModel? first;
+              for (var media in videos) {
+                if (media.id == -1) {
+                  var id = await MediaDbModel.insert(media);
+                  media.id = id;
+                }
+                var index = ids.indexOf(media.id);
+                if (index == -1) {
+                  ids.insert(0, media.id);
+                  first = media;
+                }
+              }
+              if (first != null) {
+                var file = await Tool.cacheImg(
+                  url: first.cover,
+                  cacheKey: first.cacheKey,
+                );
+                album.cover = file.path;
+              }
+              album.songIds = ids;
+              await album.update();
+              Get.back();
+              EasyLoading.dismiss();
+              EasyLoading.showToast('已添加'.tr);
+              completer.complete(true);
+            } catch (e) {
+              EasyLoading.dismiss();
+              EasyLoading.showToast('添加失败'.tr);
+              completer.completeError(e);
             }
-            album.songIds = ids;
-            await album.update();
-            Get.back();
-            EasyLoading.dismiss();
-            EasyLoading.showToast('已添加'.tr);
-            completer.complete(true);
-          } catch (e) {
-            EasyLoading.dismiss();
-            EasyLoading.showToast('添加失败'.tr);
-            completer.completeError(e);
-          }
-        },
+          },
+        ),
       ),
     );
 
@@ -458,77 +463,80 @@ class VideoModelController extends GetxController {
     var completer = Completer();
 
     Tool.showBottomSheet(
-      AlbumSelectComp(
-        isLocalPlatform: false,
-        type: MediaTagType.video,
-        excludes: [album.relationId],
-        onSelect: (album) async {
-          try {
-            EasyLoading.show(
-              status: '生成上传任务中...'.tr,
-              maskType: EasyLoadingMaskType.black,
-            );
-            List<MediaDbModel> temps = [];
-
-            var [user] = await UserDbModel.findByRelationIds([
-              album.relationUserId,
-            ], album.platform);
-            await user.updateToken();
-
-            if (album.isAliyunPlatform) {
-              var next = 'init';
-              List<AliFile> items = [];
-              while (next.isNotEmpty) {
-                var response =
-                    await AliyunApi.search(
-                      driveId: user.extra.driveId,
-                      xDeviceId: user.extra.xDeviceId,
-                      token: user.accessToken,
-                      xSignature: user.extra.xSignature,
-                      parentFileIds: [album.relationId],
-                      fileIds: videos.map((item) => item.relationId).toList(),
-                      limit: 100,
-                      marker: next == 'init' ? null : next,
-                    ).getData();
-
-                next = response.nextMarker;
-                items.addAll(response.items);
-              }
-              temps =
-                  items.map((item) {
-                    return MediaDbModel.fromAliFile(
-                      album: album,
-                      user: user,
-                      file: item,
-                      type: MediaTagType.video,
-                    );
-                  }).toList();
-            }
-
-            var keys = temps.map((item) => item.relationId).toList();
-
-            for (var item in videos) {
-              if (keys.contains(item.relationId)) {
-                continue;
-              }
-              var controller = Get.find<TaskController>();
-              await controller.createTask(
-                media: item,
-                taskType: MediaTaskType.upload,
-                uploadAlbumId: album.id,
-                remark: album.name,
+      SizedBox(
+        height: 800.w,
+        child: AlbumSelectComp(
+          isLocalPlatform: false,
+          type: MediaTagType.video,
+          excludes: [album.relationId],
+          onSelect: (album) async {
+            try {
+              EasyLoading.show(
+                status: '生成上传任务中...'.tr,
+                maskType: EasyLoadingMaskType.black,
               );
+              List<MediaDbModel> temps = [];
+
+              var [user] = await UserDbModel.findByRelationIds([
+                album.relationUserId,
+              ], album.platform);
+              await user.updateToken();
+
+              if (album.isAliyunPlatform) {
+                var next = 'init';
+                List<AliFile> items = [];
+                while (next.isNotEmpty) {
+                  var response =
+                      await AliyunApi.search(
+                        driveId: user.extra.driveId,
+                        xDeviceId: user.extra.xDeviceId,
+                        token: user.accessToken,
+                        xSignature: user.extra.xSignature,
+                        parentFileIds: [album.relationId],
+                        fileIds: videos.map((item) => item.relationId).toList(),
+                        limit: 100,
+                        marker: next == 'init' ? null : next,
+                      ).getData();
+
+                  next = response.nextMarker;
+                  items.addAll(response.items);
+                }
+                temps =
+                    items.map((item) {
+                      return MediaDbModel.fromAliFile(
+                        album: album,
+                        user: user,
+                        file: item,
+                        type: MediaTagType.video,
+                      );
+                    }).toList();
+              }
+
+              var keys = temps.map((item) => item.relationId).toList();
+
+              for (var item in videos) {
+                if (keys.contains(item.relationId)) {
+                  continue;
+                }
+                var controller = Get.find<TaskController>();
+                await controller.createTask(
+                  media: item,
+                  taskType: MediaTaskType.upload,
+                  uploadAlbumId: album.id,
+                  remark: album.name,
+                );
+              }
+              EasyLoading.dismiss();
+              EasyLoading.showToast('任务已添加'.tr);
+              Get.back();
+              completer.complete(true);
+            } catch (e) {
+              EasyLoading.dismiss();
+              EasyLoading.showToast('任务失败'.tr);
+              completer.completeError(e);
             }
-            EasyLoading.dismiss();
-            EasyLoading.showToast('任务已添加'.tr);
-            Get.back();
-            completer.complete(true);
-          } catch (e) {
-            EasyLoading.dismiss();
-            EasyLoading.showToast('任务失败'.tr);
-            completer.completeError(e);
-          }
-        },
+          },
+        ),
       ),
     );
 
@@ -591,6 +599,7 @@ class VideoModelController extends GetxController {
   Future<void> play() async {
     await videoPlayController?.value.play();
     await _player.play();
+    _audioController.player.pause();
   }
 
   Future<void> pause() async {

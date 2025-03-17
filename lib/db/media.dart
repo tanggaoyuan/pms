@@ -60,9 +60,6 @@ class MediaDbModel {
     int timestampInMilliseconds = now.millisecondsSinceEpoch;
     this.createTime = createTime ?? timestampInMilliseconds;
     this.updateTime = updateTime ?? timestampInMilliseconds;
-
-    // 10892307
-    print("${name} ${relationUserId}");
   }
 
   bool get isAudio {
@@ -152,12 +149,12 @@ class MediaDbModel {
       return isAudio ? [local, ''] : [audioTrack, local];
     }
 
-    if (isAliyunPlatform) {
-      var [user] = await UserDbModel.findByRelationIds([
-        relationUserId,
-      ], platform);
-      await user.updateToken();
+    var [user] = await UserDbModel.findByRelationIds([
+      relationUserId,
+    ], platform);
 
+    if (isAliyunPlatform) {
+      await user.updateToken();
       if (!mimeType.contains('video')) {
         var list =
             await AliyunApi.getAudioPreviewList(
@@ -179,6 +176,31 @@ class MediaDbModel {
             ).getData();
         return ['', list.last.url];
       }
+    }
+
+    // dash 播放
+    if (isBiliPlatform) {
+      await user.updateToken();
+      var [info] =
+          await BiliApi.getVideoSampleInfo(
+            bvid: relationId,
+            cookie: user.accessToken,
+          ).getData();
+
+      var dash =
+          await BiliApi.getPlayDash(
+            bvid: relationId,
+            cid: info.cid,
+            cookie: user.accessToken,
+            imgKey: user.extra.imgKey,
+            subKey: user.extra.subKey,
+          ).getData();
+
+      var filepath = await Tool.getAppCachePath();
+
+      await dash.saveXml("$filepath/bili.mpd");
+
+      return ["", "$filepath/bili.mpd"];
     }
 
     var [audio, video] = await getDownloadUrl();
@@ -254,7 +276,7 @@ class MediaDbModel {
     );
   }
 
-  static MediaDbModel fromMap(Map<String, dynamic> map) {
+  static MediaDbModel fromMap(Map map) {
     return MediaDbModel(
       id: map['id'],
       name: map['name'],

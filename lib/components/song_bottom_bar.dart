@@ -223,7 +223,9 @@ class _SongBottomBarState extends State<_SongBottomBar> {
               ),
               IconButton(
                 onPressed: () {
-                  Tool.showBottomSheet(const SongSheetComp());
+                  Tool.showBottomSheet(
+                    SizedBox(height: 800.w, child: SongSheetComp()),
+                  );
                 },
                 icon: ImgComp(source: ImgCompIcons.bars, width: 35.w),
               ),

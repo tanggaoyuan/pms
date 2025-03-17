@@ -1,10 +1,11 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lyric_xx/Lyricxx.dart';
 import 'package:pms/apis/export.dart';
-import 'package:pms/components/export.dart';
 
 class MusicLyricComp extends StatefulWidget {
   final NetLrc lrc;
@@ -42,15 +43,9 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
   GlobalKey scrollKey = GlobalKey();
 
   init() {
-    final main = Lyricxx_c.decodeLrcString(
-      widget.lrc.mainLrc,
-    );
-    final translate = Lyricxx_c.decodeLrcString(
-      widget.lrc.translateLrc,
-    );
-    final roma = Lyricxx_c.decodeLrcString(
-      widget.lrc.romaLrc,
-    );
+    final main = Lyricxx_c.decodeLrcString(widget.lrc.mainLrc);
+    final translate = Lyricxx_c.decodeLrcString(widget.lrc.translateLrc);
+    final roma = Lyricxx_c.decodeLrcString(widget.lrc.romaLrc);
     setState(() {
       mainLrcs = main.lrc;
       Map<double, String> translateMap = {};
@@ -85,8 +80,11 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
     var index = getIndexByPosition(widget.position);
     var offset = index * 50 + 25;
     if (current != index) {
-      _controller.animateTo(offset.toDouble(),
-          duration: const Duration(milliseconds: 300), curve: Curves.linear);
+      _controller.animateTo(
+        offset.toDouble(),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.linear,
+      );
       setState(() {
         current = index;
       });
@@ -134,14 +132,16 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
             if (!isShowPositionLine || showRangeBlock || index != hoverIndex) {
               isShowPositionLine = true;
               showRangeBlock = false;
-              hoverIndex = index;
+              hoverIndex = min(index, mainLrcs.length - 1);
               setState(() {});
             }
           },
           onPointerUp: (_) async {
-            await _controller.animateTo(hoverIndex * 50 + 25,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.linear);
+            await _controller.animateTo(
+              hoverIndex * 50 + 25,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.linear,
+            );
             setState(() {
               showRangeBlock = true;
             });
@@ -166,22 +166,31 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    AutoSizedText(
-                      text: mainlrc.content,
-                      color: current == index
-                          ? widget.color
-                          : widget.color.withValues(alpha: .7),
+                    FittedBox(
+                      child: Text(
+                        mainlrc.content,
+                        style: TextStyle(
+                          color:
+                              current == index
+                                  ? widget.color
+                                  : widget.color.withValues(alpha: .6),
+                          fontSize: 30.w,
+                        ),
+                      ),
                     ),
                     if (tranlrc != null)
-                      Text(
-                        tranlrc,
-                        style: TextStyle(
-                          color: current == index
-                              ? widget.color.withValues(alpha: .8)
-                              : widget.color.withValues(alpha: .5),
-                          fontSize: 12,
+                      FittedBox(
+                        child: Text(
+                          tranlrc,
+                          style: TextStyle(
+                            color:
+                                current == index
+                                    ? widget.color
+                                    : widget.color.withValues(alpha: .6),
+                            fontSize: 28.w,
+                          ),
                         ),
-                      )
+                      ),
                   ],
                 ),
               );
@@ -194,54 +203,58 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
           right: 0,
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            child: isShowPositionLine
-                ? Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: showRangeBlock
-                          ? widget.color.withValues(alpha: .1)
-                          : null,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    height: 44,
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            Duration(seconds: mainLrcs[hoverIndex].time.toInt())
-                                .toString()
-                                .split('.')
-                                .first,
-                            style: TextStyle(color: widget.color, fontSize: 12),
+            child:
+                isShowPositionLine
+                    ? Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color:
+                            showRangeBlock
+                                ? widget.color.withValues(alpha: .1)
+                                : null,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      height: 44,
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(
+                              Duration(
+                                seconds: mainLrcs[hoverIndex].time.toInt(),
+                              ).toString().split('.').first,
+                              style: TextStyle(
+                                color: widget.color,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            height: 1.5,
-                            color: widget.color,
+                          Expanded(
+                            child: Container(height: 1.5, color: widget.color),
                           ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            isShowPositionLine = false;
-                            showRangeBlock = false;
-                            setState(() {});
-                            widget.onPositionChanged(Duration(
-                                seconds: mainLrcs[hoverIndex].time.toInt()));
-                          },
-                          icon: FaIcon(
-                            FontAwesomeIcons.play,
-                            color: widget.color,
-                            size: 20,
+                          IconButton(
+                            onPressed: () {
+                              isShowPositionLine = false;
+                              showRangeBlock = false;
+                              setState(() {});
+                              widget.onPositionChanged(
+                                Duration(
+                                  seconds: mainLrcs[hoverIndex].time.toInt(),
+                                ),
+                              );
+                            },
+                            icon: FaIcon(
+                              FontAwesomeIcons.play,
+                              color: widget.color,
+                              size: 20,
+                            ),
                           ),
-                        )
-                      ],
-                    ),
-                  )
-                : null,
+                        ],
+                      ),
+                    )
+                    : null,
           ),
-        )
+        ),
       ],
     );
   }

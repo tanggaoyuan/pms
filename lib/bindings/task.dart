@@ -26,7 +26,9 @@ class TaskController extends GetxController {
   _initRun() async {
     var list = await TaskDbModel.tasks();
 
-    var medias = await MediaDbModel.findByIds(list.map((item) => item.mediaId).toList());
+    var medias = await MediaDbModel.findByIds(
+      list.map((item) => item.mediaId).toList(),
+    );
 
     for (var item in medias) {
       mediaMaps[item.id] = item;
@@ -61,7 +63,8 @@ class TaskController extends GetxController {
     var isFormat = taskType == MediaTaskType.format;
 
     var tasks = isDownload ? downloads : (isUpload ? uploads : formats);
-    var isExist = tasks.firstWhereOrNull((item) {
+    var isExist =
+        tasks.firstWhereOrNull((item) {
           var info = mediaMaps[item.mediaId];
           if (info == null) {
             return false;
@@ -70,7 +73,10 @@ class TaskController extends GetxController {
           Tool.log(['platform', media.platform, info.platform]);
           Tool.log(['type', media.type, info.type]);
           Tool.log(['uploadAlbumId', item.uploadAlbumId, uploadAlbumId]);
-          return media.relationId == info.relationId && media.platform == info.platform && media.type == info.type && item.uploadAlbumId == uploadAlbumId;
+          return media.relationId == info.relationId &&
+              media.platform == info.platform &&
+              media.type == info.type &&
+              item.uploadAlbumId == uploadAlbumId;
         }) !=
         null;
 
@@ -115,15 +121,15 @@ class TaskController extends GetxController {
     if (_reportTaskTimeRef != null) {
       return;
     }
-    _reportTaskTimeRef = Timer.periodic(const Duration(seconds: 5), (_) async {
+    _reportTaskTimeRef = Timer.periodic(const Duration(seconds: 4), (_) async {
       var uses = await UserDbModel.findByPlatform(MediaPlatformType.aliyun);
       for (var item in _aliReportRecord.entries) {
         var key = item.key;
-        var value = item.value;
+        // var value = item.value;
         var user = uses.firstWhere((item) => item.relationId == key);
         await user.updateToken();
         AliyunApi.reportTask(
-          sliceNum: value.length,
+          sliceNum: 3,
           driveId: user.extra.driveId,
           xDeviceId: user.extra.xDeviceId,
           token: user.accessToken,
@@ -145,7 +151,7 @@ class TaskController extends GetxController {
       var uses = await UserDbModel.findByPlatform(MediaPlatformType.aliyun);
       var user = uses.firstWhere((item) => item.relationId == userId);
       AliyunApi.reportTask(
-        sliceNum: 0,
+        sliceNum: 1,
         driveId: user.extra.driveId,
         xDeviceId: user.extra.xDeviceId,
         token: user.accessToken,
@@ -198,7 +204,10 @@ class TaskController extends GetxController {
 
         var referer = media.extra.referer;
 
-        download(String url, void Function(int loaded, int total) onProgress) async {
+        download(
+          String url,
+          void Function(int loaded, int total) onProgress,
+        ) async {
           try {
             if (url.isEmpty) {
               return '';
@@ -208,33 +217,44 @@ class TaskController extends GetxController {
             bool isAudioUrl = url == audioUrl;
 
             /// 如果下载的资源 是视频的音频源 并且audioTrack存在 则该音频已下载完成
-            if (media.type == MediaTagType.video && isAudioUrl && media.audioTrack.isNotEmpty) {
+            if (media.type == MediaTagType.video &&
+                isAudioUrl &&
+                media.audioTrack.isNotEmpty) {
               return media.audioTrack;
             }
 
             /// 如果下载的资源 是视频的视频源 并且local存在 则该视频已下载完成
-            if (media.type == MediaTagType.video && isVideoUrl && media.local.isNotEmpty) {
+            if (media.type == MediaTagType.video &&
+                isVideoUrl &&
+                media.local.isNotEmpty) {
               return media.local;
             }
 
             /// 如果下载的资源是音频  并且local存在 则该音频已下载完成
-            if (media.type == MediaTagType.muisc && isAudioUrl && media.local.isNotEmpty) {
+            if (media.type == MediaTagType.muisc &&
+                isAudioUrl &&
+                media.local.isNotEmpty) {
               return media.local;
             }
 
-            var urlname = await Tool.parseUrlAssetName(url: url, headers: {'referer': referer});
+            var urlname = await Tool.parseUrlAssetName(
+              url: url,
+              headers: {'referer': referer},
+            );
 
             var ext = urlname.split('.').last;
 
             var savePath = '$dirPath/${media.name.replaceAll('/', '_')}.$ext';
 
             if (media.type == MediaTagType.video && isAudioUrl) {
-              savePath = '$dirPath/${media.name.replaceAll('/', '_')}_audio_track.$ext';
+              savePath =
+                  '$dirPath/${media.name.replaceAll('/', '_')}_audio_track.$ext';
             }
 
             var tempfile = File(savePath);
 
-            var cachePosition = tempfile.existsSync() ? tempfile.lengthSync() : 0;
+            var cachePosition =
+                tempfile.existsSync() ? tempfile.lengthSync() : 0;
 
             DioChainResponse<ResponseBody>? chain;
 
@@ -256,11 +276,16 @@ class TaskController extends GetxController {
 
             _downloadQue[task.id]!.add(chain.setRange(cachePosition));
 
-            var response = await chain.onReceiveProgress((count, total) {
-              onProgress(cachePosition + count, cachePosition + total);
-            }).getData();
+            var response =
+                await chain.onReceiveProgress((count, total) {
+                  onProgress(cachePosition + count, cachePosition + total);
+                }).getData();
 
-            await Tool.saveAsset(response: response, path: savePath, start: cachePosition);
+            await Tool.saveAsset(
+              response: response,
+              path: savePath,
+              start: cachePosition,
+            );
 
             if (media.type == MediaTagType.video) {
               if (isVideoUrl) {
@@ -296,17 +321,21 @@ class TaskController extends GetxController {
               task.total = totals.fold(0, (a, b) => a + b);
             }
 
-            var sources = media.type == MediaTagType.video ? [audioUrl, videoUrl] : [audioUrl];
+            var sources =
+                media.type == MediaTagType.video
+                    ? [audioUrl, videoUrl]
+                    : [audioUrl];
 
-            List<Future> promises = sources.asMap().entries.map((item) {
-              var index = item.key;
-              var url = item.value;
-              return download(url, (loaded, total) {
-                loadeds[index] = loaded;
-                totals[index] = total;
-                updateProgress();
-              });
-            }).toList();
+            List<Future> promises =
+                sources.asMap().entries.map((item) {
+                  var index = item.key;
+                  var url = item.value;
+                  return download(url, (loaded, total) {
+                    loadeds[index] = loaded;
+                    totals[index] = total;
+                    updateProgress();
+                  });
+                }).toList();
 
             await Future.wait(promises);
 
@@ -320,22 +349,29 @@ class TaskController extends GetxController {
             downloads.remove(task);
 
             /// 如果下载的音频不是 常用格式 则进行转码 允许视频当音频
-            if (media.type == MediaTagType.muisc && !Tool.isAudioFile(media.local) && !Tool.isAudioFile(media.local)) {
+            if (media.type == MediaTagType.muisc &&
+                !Tool.isAudioFile(media.local) &&
+                !Tool.isAudioFile(media.local)) {
               createTask(media: media, taskType: MediaTaskType.format);
             }
 
-            if (media.type == MediaTagType.video && !Tool.isVideoFile(media.local) || media.audioTrack.isNotEmpty) {
+            if (media.type == MediaTagType.video &&
+                    !Tool.isVideoFile(media.local) ||
+                media.audioTrack.isNotEmpty) {
               createTask(media: media, taskType: MediaTaskType.format);
             }
 
-            if (media.type == MediaTagType.muisc && Tool.isAudioFile(media.local)) {
+            if (media.type == MediaTagType.muisc &&
+                Tool.isAudioFile(media.local)) {
               var assetpath = await Tool.getAppAssetsPath();
               var cachepath = await Tool.getAppCachePath();
               var cachefile = File(media.local);
 
               var savepath = media.local.replaceAll(cachepath, assetpath);
 
-              await Directory(savepath.substring(0, savepath.lastIndexOf('/'))).create(recursive: true);
+              await Directory(
+                savepath.substring(0, savepath.lastIndexOf('/')),
+              ).create(recursive: true);
 
               var file = await cachefile.copy(savepath);
 
@@ -354,7 +390,6 @@ class TaskController extends GetxController {
               await controller.initVideoAlbums();
             }
           } catch (e) {
-            Tool.log(['eeeee', e]);
             pauseTask(task);
           } finally {
             _downloadQue.remove(task.id);
@@ -398,7 +433,9 @@ class TaskController extends GetxController {
       upload() async {
         try {
           var [album] = await AlbumDbModel.findByIds([task.uploadAlbumId]);
-          var [user] = await UserDbModel.findByRelationIds([album.relationUserId], album.platform);
+          var [user] = await UserDbModel.findByRelationIds([
+            album.relationUserId,
+          ], album.platform);
           await user.updateToken();
 
           if (album.isAliyunPlatform) {
@@ -412,10 +449,17 @@ class TaskController extends GetxController {
             );
 
             task.total = uploader.fileSize;
-            for (var i = (task.loaded / uploader.fileSize).floor(); i < uploader.partUrls.length; i++) {
+            for (
+              var i = (task.loaded / uploader.fileSize).floor();
+              i < uploader.partUrls.length;
+              i++
+            ) {
               var partUrl = uploader.partUrls[i];
               var chunk = uploader.getPartChunk(i);
-              var promise = AliyunApi.uploadPart(partUrl: partUrl, chunk: chunk);
+              var promise = AliyunApi.uploadPart(
+                partUrl: partUrl,
+                chunk: chunk,
+              );
               _uploadQue[task.id] = promise;
               await promise.onSendProgress((loaded, _) {
                 // TODO 无效？？？
@@ -442,23 +486,42 @@ class TaskController extends GetxController {
 
           if (album.isNeteasePlatform) {
             var domains = await NeteaseApi.getUploadDomains().getData();
-            var file = await NeteaseApi.uploadCheck(cookie: user.accessToken, filepath: media.local).getData();
-            file = await NeteaseApi.uploadCreate(cookie: user.accessToken, file: file).getData();
+            var file =
+                await NeteaseApi.uploadCheck(
+                  cookie: user.accessToken,
+                  filepath: media.local,
+                ).getData();
+            file =
+                await NeteaseApi.uploadCreate(
+                  cookie: user.accessToken,
+                  file: file,
+                ).getData();
             task.total = file.fileSize;
             if (file.needUpload) {
-              var promise = NeteaseApi.upload(cookie: user.accessToken, file: file, domain: domains.first);
+              var promise = NeteaseApi.upload(
+                cookie: user.accessToken,
+                file: file,
+                domain: domains.first,
+              );
               _uploadQue[task.id] = promise;
               await promise.onSendProgress((loaded, total) {
                 task.loaded = loaded;
               });
             }
-            var songId = await NeteaseApi.uploadFileSave(cookie: user.accessToken, file: file).getData();
+            var songId =
+                await NeteaseApi.uploadFileSave(
+                  cookie: user.accessToken,
+                  file: file,
+                ).getData();
 
             if (songId == 0) {
               throw '保存上传文件异常'.tr;
             }
 
-            await NeteaseApi.uploadPublic(cookie: user.accessToken, songId: songId);
+            await NeteaseApi.uploadPublic(
+              cookie: user.accessToken,
+              songId: songId,
+            );
 
             await task.remove();
             uploads.remove(task);
@@ -503,12 +566,15 @@ class TaskController extends GetxController {
         var index = media.local.lastIndexOf('.');
         var cachepath = await Tool.getAppCachePath();
         var assetpath = await Tool.getAppAssetsPath();
-        var audioOutput = '${media.local.replaceAll(cachepath, assetpath).substring(0, index)}.flac';
+        var audioOutput =
+            '${media.local.replaceAll(cachepath, assetpath).substring(0, index)}.flac';
         var outputFile = File(audioOutput);
         if (outputFile.existsSync()) {
           await outputFile.delete(recursive: true);
         }
-        await Directory(audioOutput.substring(0, audioOutput.lastIndexOf('/'))).create(recursive: true);
+        await Directory(
+          audioOutput.substring(0, audioOutput.lastIndexOf('/')),
+        ).create(recursive: true);
 
         var mediaInfo = await FfmpegTool.getMediaInformation(media.local);
 
@@ -539,35 +605,41 @@ class TaskController extends GetxController {
           },
         );
         _formatQue[task.id] = promise;
-        promise.then((_) async {
-          var oldPath = media.local;
-          media.local = audioOutput;
-          var file = File(oldPath);
-          await media.update();
-          if (file.existsSync()) {
-            await file.delete(recursive: true);
-          }
-          await task.remove();
-          formats.remove(task);
-        }).catchError((e) {
-          task.status = MediaTaskStatus.pause;
-          task.update();
-        }).whenComplete(() {
-          _formatQue.remove(task.id);
-          _runFormatTask();
-        });
+        promise
+            .then((_) async {
+              var oldPath = media.local;
+              media.local = audioOutput;
+              var file = File(oldPath);
+              await media.update();
+              if (file.existsSync()) {
+                await file.delete(recursive: true);
+              }
+              await task.remove();
+              formats.remove(task);
+            })
+            .catchError((e) {
+              task.status = MediaTaskStatus.pause;
+              task.update();
+            })
+            .whenComplete(() {
+              _formatQue.remove(task.id);
+              _runFormatTask();
+            });
       }
 
       if (media.isVideo) {
         var index = media.local.lastIndexOf('.');
         var cachepath = await Tool.getAppCachePath();
         var assetpath = await Tool.getAppAssetsPath();
-        var videoOutput = '${media.local.replaceAll(cachepath, assetpath).substring(0, index)}.mp4';
+        var videoOutput =
+            '${media.local.replaceAll(cachepath, assetpath).substring(0, index)}.mp4';
         var outputFile = File(videoOutput);
         if (outputFile.existsSync()) {
           await outputFile.delete(recursive: true);
         }
-        await Directory(videoOutput.substring(0, videoOutput.lastIndexOf('/'))).create(recursive: true);
+        await Directory(
+          videoOutput.substring(0, videoOutput.lastIndexOf('/')),
+        ).create(recursive: true);
         var promise = FfmpegTool.merge(
           videoInput: media.local,
           audioInput: media.audioTrack,
@@ -578,29 +650,32 @@ class TaskController extends GetxController {
           },
         );
         _formatQue[task.id] = promise;
-        promise.then((_) async {
-          var oldPath = media.local;
-          var oldAudioTrack = media.audioTrack;
-          media.local = videoOutput;
-          media.audioTrack = '';
-          await media.update();
-          var file = File(oldPath);
-          if (file.existsSync()) {
-            await file.delete(recursive: true);
-          }
-          var audioFile = File(oldAudioTrack);
-          if (audioFile.existsSync()) {
-            await audioFile.delete(recursive: true);
-          }
-          await task.remove();
-          formats.remove(task);
-        }).catchError((e) {
-          task.status = MediaTaskStatus.pause;
-          task.update();
-        }).whenComplete(() {
-          _formatQue.remove(task.id);
-          _runFormatTask();
-        });
+        promise
+            .then((_) async {
+              var oldPath = media.local;
+              var oldAudioTrack = media.audioTrack;
+              media.local = videoOutput;
+              media.audioTrack = '';
+              await media.update();
+              var file = File(oldPath);
+              if (file.existsSync()) {
+                await file.delete(recursive: true);
+              }
+              var audioFile = File(oldAudioTrack);
+              if (audioFile.existsSync()) {
+                await audioFile.delete(recursive: true);
+              }
+              await task.remove();
+              formats.remove(task);
+            })
+            .catchError((e) {
+              task.status = MediaTaskStatus.pause;
+              task.update();
+            })
+            .whenComplete(() {
+              _formatQue.remove(task.id);
+              _runFormatTask();
+            });
       }
     }
   }

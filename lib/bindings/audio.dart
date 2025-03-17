@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:media_player_plugin/media_audio_player.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/utils/export.dart';
@@ -34,6 +34,22 @@ class AudioController extends GetxController {
   var time = 0.obs;
 
   init() async {
+    final store = await Hive.openBox('media');
+    List list = store.get("songs") ?? [];
+
+    songs.value =
+        _temps =
+            list.map((item) {
+              return MediaDbModel.fromMap(item);
+            }).toList();
+    current.value = store.get("current") ?? 0;
+
+    var playModeIndex = store.get("playModeIndex") ?? 0;
+
+    playMode.value = PlayMode.values[playModeIndex];
+
+    await store.close();
+
     await player.init();
     await player.enablePlayback();
     player.registerPlayBackEvent(
@@ -45,6 +61,9 @@ class AudioController extends GetxController {
       player.playStateStream!.listen((event) {
         playing.value = event.isPlaying;
         isBuffering.value = event.isBuffering;
+
+        Tool.log(["isBuffering", event.isBuffering]);
+
         if (event.isPlayCompleted) {
           if (playMode.value == PlayMode.one) {
             play(current.value);
@@ -62,6 +81,11 @@ class AudioController extends GetxController {
         duration.value = Duration(seconds: event.duration.round());
       }),
     );
+
+    if (songs.isNotEmpty) {
+      await play(current.value);
+      await player.pause();
+    }
 
     _timerRef = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!enableTimeMode.value) {
@@ -97,8 +121,6 @@ class AudioController extends GetxController {
 
     var song = songs[index];
     var urls = await song.getPlayUrl();
-
-    print("urls ${urls}");
 
     var url = urls.first.isNotEmpty ? urls.first : urls.last;
 
@@ -137,9 +159,19 @@ class AudioController extends GetxController {
       "User-Agent":
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
     };
-    await player.setUrl(url: url, urlHeader: headers, cover: artUri);
+    await player.setUrl(
+      url: url,
+      urlHeader: headers,
+      cover: artUri,
+      title: song.name,
+      artist: song.artist,
+    );
     await player.prepare();
     await player.play();
+
+    final store = await Hive.openBox('media');
+    await store.put("current", index);
+    await store.close();
   }
 
   next() {
@@ -180,11 +212,14 @@ class AudioController extends GetxController {
     }
   }
 
-  setPlayList(List<MediaDbModel> songs) {
+  setPlayList(List<MediaDbModel> songs) async {
     this.songs.value = _temps = [...songs];
+    final store = await Hive.openBox('media');
+    store.put("songs", this.songs.map((item) => item.toMap()).toList());
+    await store.close();
   }
 
-  togglePlayMode() {
+  togglePlayMode() async {
     var index = PlayMode.values.indexOf(playMode.value);
     playMode.value = PlayMode.values[(index + 1) % PlayMode.values.length];
 
@@ -196,12 +231,18 @@ class AudioController extends GetxController {
     if (playMode.value == PlayMode.order) {
       songs.value = _temps;
     }
+
     if (playMode.value == PlayMode.random) {
       var temps = [..._temps];
       temps.shuffle();
       songs.value = temps;
     }
+
     current.value = songs.indexOf(song);
+
+    final store = await Hive.openBox('media');
+    store.put("playModeIndex", PlayMode.values.indexOf(playMode.value));
+    await store.close();
   }
 
   toggleTimeMode() {

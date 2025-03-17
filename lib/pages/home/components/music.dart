@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,78 +16,81 @@ class MusicComp extends GetView<HomeController> {
       AlbumDbModel.importAlbumAction,
       onPress: () {
         Tool.showBottomSheet(
-          UserOperation(
-            type: MediaTagType.muisc,
-            onSave: (list, user) async {
-              EasyLoading.show(
-                status: '导入中...'.tr,
-                maskType: EasyLoadingMaskType.black,
-              );
+          SizedBox(
+            height: 800.w,
+            child: UserOperation(
+              type: MediaTagType.muisc,
+              onSave: (list, user) async {
+                EasyLoading.show(
+                  status: '导入中...'.tr,
+                  maskType: EasyLoadingMaskType.black,
+                );
 
-              try {
-                await user.updateToken();
+                try {
+                  await user.updateToken();
 
-                for (var album in list) {
-                  if (album.isAliyunPlatform) {
-                    var sizeInfo =
-                        await AliyunApi.getFolderSizeInfo(
-                          fileId: album.relationId,
-                          driveId: user.extra.driveId,
-                          xDeviceId: user.extra.xDeviceId,
-                          token: user.accessToken,
-                          xSignature: user.extra.xSignature,
-                        ).getData();
-
-                    if (sizeInfo.fileCount > 0) {
-                      var files =
-                          await AliyunApi.search(
+                  for (var album in list) {
+                    if (album.isAliyunPlatform) {
+                      var sizeInfo =
+                          await AliyunApi.getFolderSizeInfo(
+                            fileId: album.relationId,
                             driveId: user.extra.driveId,
                             xDeviceId: user.extra.xDeviceId,
                             token: user.accessToken,
                             xSignature: user.extra.xSignature,
-                            parentFileIds: [album.relationId],
-                            categorys: ['audio', 'video'],
                           ).getData();
-                      var cover = files.items.firstWhereOrNull(
-                        (item) => item.thumbnail.isNotEmpty,
-                      );
-                      if (cover != null) {
-                        album.cover = cover.thumbnail;
+
+                      if (sizeInfo.fileCount > 0) {
+                        var files =
+                            await AliyunApi.search(
+                              driveId: user.extra.driveId,
+                              xDeviceId: user.extra.xDeviceId,
+                              token: user.accessToken,
+                              xSignature: user.extra.xSignature,
+                              parentFileIds: [album.relationId],
+                              categorys: ['audio', 'video'],
+                            ).getData();
+                        var cover = files.items.firstWhereOrNull(
+                          (item) => item.thumbnail.isNotEmpty,
+                        );
+                        if (cover != null) {
+                          album.cover = cover.thumbnail;
+                        }
+                        album.count = sizeInfo.fileCount;
                       }
-                      album.count = sizeInfo.fileCount;
                     }
+
+                    if (album.isNeteasePlatform &&
+                        album.relationId.contains('cloud')) {
+                      var response =
+                          await NeteaseApi.getCloudSong(
+                            cookie: user.accessToken,
+                          ).getData();
+                      album.count = response.count;
+                    }
+
+                    if (album.cover.startsWith('http')) {
+                      var file = await Tool.cacheImg(
+                        url: album.cover,
+                        referer: user.extra.referer,
+                      );
+                      var coverpath = await Tool.getCoverStorePath();
+                      var name = file.path.split('/').last;
+                      await file.copy('$coverpath/$name');
+                      album.cover = '$coverpath/$name';
+                    }
+
+                    await AlbumDbModel.insert(album);
                   }
 
-                  if (album.isNeteasePlatform &&
-                      album.relationId.contains('cloud')) {
-                    var response =
-                        await NeteaseApi.getCloudSong(
-                          cookie: user.accessToken,
-                        ).getData();
-                    album.count = response.count;
-                  }
-
-                  if (album.cover.startsWith('http')) {
-                    var file = await Tool.cacheImg(
-                      url: album.cover,
-                      referer: user.extra.referer,
-                    );
-                    var coverpath = await Tool.getCoverStorePath();
-                    var name = file.path.split('/').last;
-                    await file.copy('$coverpath/$name');
-                    album.cover = '$coverpath/$name';
-                  }
-
-                  await AlbumDbModel.insert(album);
+                  await controller.initMuiceAlbums();
+                  EasyLoading.dismiss();
+                } catch (e) {
+                  EasyLoading.dismiss();
+                  EasyLoading.showToast(e.toString());
                 }
-
-                await controller.initMuiceAlbums();
-                EasyLoading.dismiss();
-              } catch (e) {
-                EasyLoading.dismiss();
-                EasyLoading.showToast(e.toString());
-              }
-            },
+              },
+            ),
           ),
         );
       },

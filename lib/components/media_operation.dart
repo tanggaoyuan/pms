@@ -9,7 +9,8 @@ class MediaOperationComp extends StatelessWidget {
     required String name,
     required String albumName,
     required String art,
-  }) onSave;
+  })
+  onSave;
   final _formKey = GlobalKey<FormState>();
 
   late String name;
@@ -49,17 +50,20 @@ class MediaOperationComp extends StatelessWidget {
           labelText: labelText,
           labelStyle: TextStyle(fontSize: 24.w),
           hintStyle: TextStyle(fontSize: 24.w),
-          contentPadding:
-              EdgeInsets.symmetric(vertical: 10.w, horizontal: 20.w),
+          contentPadding: EdgeInsets.symmetric(
+            vertical: 10.w,
+            horizontal: 20.w,
+          ),
         ),
-        validator: allowEmpty
-            ? null
-            : (value) {
-                if (value == null || value.isEmpty) {
-                  return '请输入'.tr;
-                }
-                return null;
-              },
+        validator:
+            allowEmpty
+                ? null
+                : (value) {
+                  if (value == null || value.isEmpty) {
+                    return '请输入'.tr;
+                  }
+                  return null;
+                },
         onSaved: onSaved,
       ),
     );
@@ -69,18 +73,14 @@ class MediaOperationComp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
+      height: 350,
       padding: EdgeInsets.all(30.w),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            Text(
-              '修改信息'.tr,
-              style: TextStyle(fontSize: 30.sp),
-            ),
-            SizedBox(
-              height: 20.w,
-            ),
+            Text('修改信息'.tr, style: TextStyle(fontSize: 30.sp)),
+            SizedBox(height: 20.w),
             renderInput(
               value: name,
               labelText: '媒体名称'.tr,
@@ -88,9 +88,7 @@ class MediaOperationComp extends StatelessWidget {
                 name = value ?? '';
               },
             ),
-            SizedBox(
-              height: 30.w,
-            ),
+            SizedBox(height: 30.w),
             renderInput(
               value: albumName,
               labelText: '专辑名称'.tr,
@@ -98,9 +96,7 @@ class MediaOperationComp extends StatelessWidget {
                 albumName = value ?? '';
               },
             ),
-            SizedBox(
-              height: 30.w,
-            ),
+            SizedBox(height: 30.w),
             renderInput(
               value: art,
               labelText: '艺人'.tr,
@@ -108,16 +104,16 @@ class MediaOperationComp extends StatelessWidget {
                 art = value ?? '';
               },
             ),
-            SizedBox(
-              height: 30.w,
-            ),
+            SizedBox(height: 30.w),
             SizedBox(
               width: double.infinity,
               height: 80.w,
               child: TextButton(
                 style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                        Get.theme.primaryColor.withValues(alpha: .1))),
+                  backgroundColor: WidgetStatePropertyAll(
+                    Get.theme.primaryColor.withValues(alpha: .1),
+                  ),
+                ),
                 onPressed: () {
                   var validate = _formKey.currentState?.validate() ?? false;
                   if (!validate) {
@@ -127,31 +123,25 @@ class MediaOperationComp extends StatelessWidget {
                   onSave(name: name, albumName: albumName, art: art);
                   Get.back();
                 },
-                child: Text(
-                  '确定'.tr,
-                  style: TextStyle(fontSize: 26.sp),
-                ),
+                child: Text('确定'.tr, style: TextStyle(fontSize: 26.sp)),
               ),
             ),
-            SizedBox(
-              height: 30.w,
-            ),
+            SizedBox(height: 30.w),
             SizedBox(
               width: double.infinity,
               height: 80.w,
               child: TextButton(
                 style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                        Get.theme.primaryColor.withValues(alpha: .1))),
+                  backgroundColor: WidgetStatePropertyAll(
+                    Get.theme.primaryColor.withValues(alpha: .1),
+                  ),
+                ),
                 onPressed: () {
                   Get.back();
                 },
-                child: Text(
-                  '取消'.tr,
-                  style: TextStyle(fontSize: 26.sp),
-                ),
+                child: Text('取消'.tr, style: TextStyle(fontSize: 26.sp)),
               ),
-            )
+            ),
           ],
         ),
       ),

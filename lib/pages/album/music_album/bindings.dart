@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:pms/apis/export.dart';
 import 'package:pms/bindings/export.dart';
@@ -158,7 +160,8 @@ class MusicModelController extends GetxController {
           tasks.add(
             Tool.cacheImg(
               url: song.cover,
-              cacheKey: '${MediaPlatformType.aliyun}@${item.fileId}',
+              // cacheKey: '${MediaPlatformType.aliyun}@${item.fileId}',
+              cacheKey: song.cacheKey,
               referer: song.extra.referer,
             ),
           );
@@ -323,7 +326,7 @@ class MusicModelController extends GetxController {
         await user.updateToken();
         if (album.relationId.contains('cloud')) {
           await NeteaseApi.deleteCloudSong(
-            cookie: user!.accessToken,
+            cookie: user.accessToken,
             tracks: songs.map((item) => item.relationId).toList(),
           );
         } else {
@@ -356,7 +359,6 @@ class MusicModelController extends GetxController {
       EasyLoading.dismiss();
       EasyLoading.showToast('删除成功'.tr);
     } catch (e) {
-      Tool.log(e);
       EasyLoading.dismiss();
       EasyLoading.showToast('删除任务失败'.tr);
     }
@@ -365,44 +367,47 @@ class MusicModelController extends GetxController {
   Future<void> handleAddAlbum(List<MediaDbModel> songs) async {
     var completer = Completer();
     Tool.showBottomSheet(
-      AlbumSelectComp(
-        isLocalPlatform: true,
-        type: MediaTagType.muisc,
-        excludes: [album.relationId],
-        onSelect: (album) async {
-          try {
-            EasyLoading.show(
-              status: '${"添加中".tr}...',
-              maskType: EasyLoadingMaskType.black,
-            );
-            List<int> ids = [...album.songIds];
-            MediaDbModel? first;
-            for (var media in songs) {
-              if (media.id == -1) {
-                var id = await MediaDbModel.insert(media);
-                media.id = id;
+      SizedBox(
+        height: 800.w,
+        child: AlbumSelectComp(
+          isLocalPlatform: true,
+          type: MediaTagType.muisc,
+          excludes: [album.relationId],
+          onSelect: (album) async {
+            try {
+              EasyLoading.show(
+                status: '${"添加中".tr}...',
+                maskType: EasyLoadingMaskType.black,
+              );
+              List<int> ids = [...album.songIds];
+              MediaDbModel? first;
+              for (var media in songs) {
+                if (media.id == -1) {
+                  var id = await MediaDbModel.insert(media);
+                  media.id = id;
+                }
+                var index = ids.indexOf(media.id);
+                if (index == -1) {
+                  ids.insert(0, media.id);
+                  first = media;
+                }
               }
-              var index = ids.indexOf(media.id);
-              if (index == -1) {
-                ids.insert(0, media.id);
-                first = media;
+              if (first != null) {
+                album.cover = first.cover;
               }
+              album.songIds = ids;
+              await album.update();
+              Get.back();
+              EasyLoading.dismiss();
+              EasyLoading.showToast('已添加'.tr);
+              completer.complete(true);
+            } catch (e) {
+              EasyLoading.dismiss();
+              EasyLoading.showToast('添加失败'.tr);
+              completer.completeError(e);
             }
-            if (first != null) {
-              album.cover = first.cover;
-            }
-            album.songIds = ids;
-            await album.update();
-            Get.back();
-            EasyLoading.dismiss();
-            EasyLoading.showToast('已添加'.tr);
-            completer.complete(true);
-          } catch (e) {
-            EasyLoading.dismiss();
-            EasyLoading.showToast('添加失败'.tr);
-            completer.completeError(e);
-          }
-        },
+          },
+        ),
       ),
     );
 
@@ -439,97 +444,100 @@ class MusicModelController extends GetxController {
     var completer = Completer();
 
     Tool.showBottomSheet(
-      AlbumSelectComp(
-        isLocalPlatform: false,
-        type: MediaTagType.muisc,
-        excludes: [album.relationId],
-        onSelect: (album) async {
-          try {
-            EasyLoading.show(
-              status: '生成上传任务中...'.tr,
-              maskType: EasyLoadingMaskType.black,
-            );
-            List<MediaDbModel> temps = [];
-
-            var [user] = await UserDbModel.findByRelationIds([
-              album.relationUserId,
-            ], album.platform);
-            await user.updateToken();
-
-            if (album.isNeteasePlatform) {
-              var response =
-                  await NeteaseApi.getCloudSong(
-                    cookie: user.accessToken,
-                    limit: 10000,
-                  ).getData();
-              temps =
-                  response.songs.map((item) {
-                    return MediaDbModel.fromNetSong(
-                      album: album,
-                      user: user,
-                      file: item,
-                      type: MediaTagType.muisc,
-                    );
-                  }).toList();
-            }
-
-            if (album.isAliyunPlatform) {
-              var next = 'init';
-              List<AliFile> items = [];
-              while (next.isNotEmpty) {
-                var response =
-                    await AliyunApi.search(
-                      driveId: user.extra.driveId,
-                      xDeviceId: user.extra.xDeviceId,
-                      token: user.accessToken,
-                      xSignature: user.extra.xSignature,
-                      parentFileIds: [album.relationId],
-                      fileIds: songs.map((item) => item.relationId).toList(),
-                      limit: 100,
-                      marker: next == 'init' ? null : next,
-                    ).getData();
-
-                next = response.nextMarker;
-                items.addAll(response.items);
-              }
-              temps =
-                  items.map((item) {
-                    return MediaDbModel.fromAliFile(
-                      album: album,
-                      user: user,
-                      file: item,
-                      type: MediaTagType.muisc,
-                    );
-                  }).toList();
-            }
-
-            var keys = temps.map((item) => item.relationId).toList();
-
-            for (var item in songs) {
-              // 如果上传的是网易 歌曲是视频则跳过
-              if (keys.contains(item.relationId) ||
-                  (album.isNeteasePlatform &&
-                      item.mimeType.contains('video'))) {
-                continue;
-              }
-              var controller = Get.find<TaskController>();
-              await controller.createTask(
-                media: item,
-                taskType: MediaTaskType.upload,
-                uploadAlbumId: album.id,
-                remark: album.name,
+      SizedBox(
+        height: 800.w,
+        child: AlbumSelectComp(
+          isLocalPlatform: false,
+          type: MediaTagType.muisc,
+          excludes: [album.relationId],
+          onSelect: (album) async {
+            try {
+              EasyLoading.show(
+                status: '生成上传任务中...'.tr,
+                maskType: EasyLoadingMaskType.black,
               );
+              List<MediaDbModel> temps = [];
+
+              var [user] = await UserDbModel.findByRelationIds([
+                album.relationUserId,
+              ], album.platform);
+              await user.updateToken();
+
+              if (album.isNeteasePlatform) {
+                var response =
+                    await NeteaseApi.getCloudSong(
+                      cookie: user.accessToken,
+                      limit: 10000,
+                    ).getData();
+                temps =
+                    response.songs.map((item) {
+                      return MediaDbModel.fromNetSong(
+                        album: album,
+                        user: user,
+                        file: item,
+                        type: MediaTagType.muisc,
+                      );
+                    }).toList();
+              }
+
+              if (album.isAliyunPlatform) {
+                var next = 'init';
+                List<AliFile> items = [];
+                while (next.isNotEmpty) {
+                  var response =
+                      await AliyunApi.search(
+                        driveId: user.extra.driveId,
+                        xDeviceId: user.extra.xDeviceId,
+                        token: user.accessToken,
+                        xSignature: user.extra.xSignature,
+                        parentFileIds: [album.relationId],
+                        fileIds: songs.map((item) => item.relationId).toList(),
+                        limit: 100,
+                        marker: next == 'init' ? null : next,
+                      ).getData();
+
+                  next = response.nextMarker;
+                  items.addAll(response.items);
+                }
+                temps =
+                    items.map((item) {
+                      return MediaDbModel.fromAliFile(
+                        album: album,
+                        user: user,
+                        file: item,
+                        type: MediaTagType.muisc,
+                      );
+                    }).toList();
+              }
+
+              var keys = temps.map((item) => item.relationId).toList();
+
+              for (var item in songs) {
+                // 如果上传的是网易 歌曲是视频则跳过
+                if (keys.contains(item.relationId) ||
+                    (album.isNeteasePlatform &&
+                        item.mimeType.contains('video'))) {
+                  continue;
+                }
+                var controller = Get.find<TaskController>();
+                await controller.createTask(
+                  media: item,
+                  taskType: MediaTaskType.upload,
+                  uploadAlbumId: album.id,
+                  remark: album.name,
+                );
+              }
+              EasyLoading.dismiss();
+              EasyLoading.showToast('任务已添加'.tr);
+              Get.back();
+              completer.complete(true);
+            } catch (e) {
+              EasyLoading.dismiss();
+              EasyLoading.showToast('任务失败'.tr);
+              completer.completeError(e);
             }
-            EasyLoading.dismiss();
-            EasyLoading.showToast('任务已添加'.tr);
-            Get.back();
-            completer.complete(true);
-          } catch (e) {
-            EasyLoading.dismiss();
-            EasyLoading.showToast('任务失败'.tr);
-            completer.completeError(e);
-          }
-        },
+          },
+        ),
       ),
     );
 
@@ -599,7 +607,6 @@ class MusicModelController extends GetxController {
       audioController.play(index, album.id);
       EasyLoading.dismiss();
     } catch (e) {
-      Tool.log(e);
       EasyLoading.dismiss();
       EasyLoading.showToast('获取播放数据异常'.tr);
     }

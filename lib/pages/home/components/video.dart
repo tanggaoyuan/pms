@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:pms/apis/export.dart';
@@ -15,56 +16,79 @@ class VideoComp extends GetView<HomeController> {
       AlbumDbModel.importAlbumAction,
       onPress: () {
         Tool.showBottomSheet(
-          UserOperation(
-            type: MediaTagType.video,
-            onSave: (list, user) async {
-              await user.updateToken();
+          SizedBox(
+            height: 800.w,
+            child: UserOperation(
+              type: MediaTagType.video,
+              onSave: (list, user) async {
+                EasyLoading.show(
+                  status: '导入中...'.tr,
+                  maskType: EasyLoadingMaskType.black,
+                );
+                try {
+                  await user.updateToken();
+                  for (var album in list) {
+                    if (album.isAliyunPlatform) {
+                      var sizeInfo =
+                          await AliyunApi.getFolderSizeInfo(
+                            fileId: album.relationId,
+                            driveId: user.extra.driveId,
+                            xDeviceId: user.extra.xDeviceId,
+                            token: user.accessToken,
+                            xSignature: user.extra.xSignature,
+                          ).getData();
 
-              for (var album in list) {
-                if (album.isAliyunPlatform) {
-                  var sizeInfo = await AliyunApi.getFolderSizeInfo(
-                    fileId: album.relationId,
-                    driveId: user.extra.driveId,
-                    xDeviceId: user.extra.xDeviceId,
-                    token: user.accessToken,
-                    xSignature: user.extra.xSignature,
-                  ).getData();
-
-                  if (sizeInfo.fileCount > 0) {
-                    var files = await AliyunApi.search(
-                      driveId: user.extra.driveId,
-                      xDeviceId: user.extra.xDeviceId,
-                      token: user.accessToken,
-                      xSignature: user.extra.xSignature,
-                      parentFileIds: [album.relationId],
-                      categorys: ['audio', 'video'],
-                    ).getData();
-                    var cover = files.items.firstWhereOrNull((item) => item.thumbnail.isNotEmpty);
-                    if (cover != null) {
-                      album.cover = cover.thumbnail;
+                      if (sizeInfo.fileCount > 0) {
+                        var files =
+                            await AliyunApi.search(
+                              driveId: user.extra.driveId,
+                              xDeviceId: user.extra.xDeviceId,
+                              token: user.accessToken,
+                              xSignature: user.extra.xSignature,
+                              parentFileIds: [album.relationId],
+                              categorys: ['audio', 'video'],
+                            ).getData();
+                        var cover = files.items.firstWhereOrNull(
+                          (item) => item.thumbnail.isNotEmpty,
+                        );
+                        if (cover != null) {
+                          album.cover = cover.thumbnail;
+                        }
+                        album.count = sizeInfo.fileCount;
+                      }
                     }
-                    album.count = sizeInfo.fileCount;
+
+                    if (album.isNeteasePlatform &&
+                        album.relationId.contains('cloud')) {
+                      var response =
+                          await NeteaseApi.getCloudSong(
+                            cookie: user.accessToken,
+                          ).getData();
+                      album.count = response.count;
+                    }
+
+                    if (album.cover.startsWith('http')) {
+                      var file = await Tool.cacheImg(
+                        url: album.cover,
+                        referer: user.extra.referer,
+                      );
+                      var coverpath = await Tool.getCoverStorePath();
+                      var name = file.path.split('/').last;
+                      await file.copy('$coverpath/$name');
+                      album.cover = '$coverpath/$name';
+                    }
+
+                    await AlbumDbModel.insert(album);
                   }
+
+                  await controller.initVideoAlbums();
+                  EasyLoading.dismiss();
+                } catch (e) {
+                  EasyLoading.dismiss();
+                  EasyLoading.showToast(e.toString());
                 }
-
-                if (album.isNeteasePlatform && album.relationId.contains('cloud')) {
-                  var response = await NeteaseApi.getCloudSong(cookie: user.accessToken).getData();
-                  album.count = response.count;
-                }
-
-                if (album.cover.startsWith('http')) {
-                  var file = await Tool.cacheImg(url: album.cover, referer: user.extra.referer);
-                  var coverpath = await Tool.getCoverStorePath();
-                  var name = file.path.split('/').last;
-                  await file.copy('$coverpath/$name');
-                  album.cover = '$coverpath/$name';
-                }
-
-                await AlbumDbModel.insert(album);
-              }
-
-              await controller.initVideoAlbums();
-            },
+              },
+            ),
           ),
         );
       },
@@ -75,20 +99,22 @@ class VideoComp extends GetView<HomeController> {
     return AlbumItemComp(
       AlbumDbModel.createAlbumAction,
       onPress: () {
-        Tool.showBottomSheet(AlbumOperationComp(
-          onSave: (value) async {
-            var model = AlbumDbModel(
-              name: value,
-              type: MediaTagType.video,
-              platform: MediaPlatformType.local,
-              isSelf: 1,
-            );
-            var id = await AlbumDbModel.insert(model);
-            model.id = id;
-            controller.videoAlbums.add(model);
-            Get.back();
-          },
-        ));
+        Tool.showBottomSheet(
+          AlbumOperationComp(
+            onSave: (value) async {
+              var model = AlbumDbModel(
+                name: value,
+                type: MediaTagType.video,
+                platform: MediaPlatformType.local,
+                isSelf: 1,
+              );
+              var id = await AlbumDbModel.insert(model);
+              model.id = id;
+              controller.videoAlbums.add(model);
+              Get.back();
+            },
+          ),
+        );
       },
     );
   }
@@ -116,12 +142,13 @@ class VideoComp extends GetView<HomeController> {
 
               return AlbumItemComp(
                 album,
-                onDelete: disable
-                    ? null
-                    : () async {
-                        await AlbumDbModel.delete(albums[index].id);
-                        albums.remove(albums[index]);
-                      },
+                onDelete:
+                    disable
+                        ? null
+                        : () async {
+                          await AlbumDbModel.delete(albums[index].id);
+                          albums.remove(albums[index]);
+                        },
                 onPress: () async {
                   await VideoAlbumPage.to(albums[index]);
                   controller.initVideoAlbums();
@@ -129,7 +156,7 @@ class VideoComp extends GetView<HomeController> {
               );
             },
           );
-        })
+        }),
       ],
     );
   }

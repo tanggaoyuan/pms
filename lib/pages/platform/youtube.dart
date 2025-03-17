@@ -805,6 +805,7 @@ if (!window.fetchex) {
                   onPressed: () {
                     Tool.showBottomSheet(
                       Container(
+                        height: 800.w,
                         padding: EdgeInsets.symmetric(
                           horizontal: 20.w,
                           vertical: 30.w,

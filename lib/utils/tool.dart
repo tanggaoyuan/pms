@@ -9,9 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:logger/logger.dart';
 import 'package:pms/utils/chain.dart';
 
-var logger = Logger(
-  printer: PrettyPrinter(),
-);
+var logger = Logger(printer: PrettyPrinter());
 
 class Tool {
   static Map<String, String> parseCookie(String? cookie) {
@@ -28,7 +26,13 @@ class Tool {
   }
 
   static String mapToCookieString(Map<String, String?> cookieMap) {
-    return cookieMap.entries.where((item) => item.value != null).map((entry) => '${Uri.encodeComponent(entry.key)}=${Uri.encodeComponent(entry.value ?? '')}').join('; ');
+    return cookieMap.entries
+        .where((item) => item.value != null)
+        .map(
+          (entry) =>
+              '${Uri.encodeComponent(entry.key)}=${Uri.encodeComponent(entry.value ?? '')}',
+        )
+        .join('; ');
   }
 
   static log(dynamic message) {
@@ -69,13 +73,17 @@ class Tool {
     // var sink = await file.open(mode: FileMode.write);
     var completer = Completer<File>();
 
-    response.stream.listen((data) {
-      file.writeAsBytesSync(data, mode: FileMode.append);
-    }, onDone: () async {
-      completer.complete(file);
-    }, onError: (error) {
-      completer.completeError(error);
-    });
+    response.stream.listen(
+      (data) {
+        file.writeAsBytesSync(data, mode: FileMode.append);
+      },
+      onDone: () async {
+        completer.complete(file);
+      },
+      onError: (error) {
+        completer.completeError(error);
+      },
+    );
 
     return completer.future;
   }
@@ -85,25 +93,27 @@ class Tool {
     required String content,
     required Future<void> Function() onConfirm,
   }) {
-    Get.dialog(AlertDialog(
-      title: Text(title),
-      content: Text(content),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Get.back();
-          },
-          child: Text("取消".tr),
-        ),
-        TextButton(
-          onPressed: () async {
-            await onConfirm();
-            Get.back();
-          },
-          child: Text("确定".tr),
-        ),
-      ],
-    ));
+    Get.dialog(
+      AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back();
+            },
+            child: Text("取消".tr),
+          ),
+          TextButton(
+            onPressed: () async {
+              await onConfirm();
+              Get.back();
+            },
+            child: Text("确定".tr),
+          ),
+        ],
+      ),
+    );
   }
 
   static Future<T?> showMenuPosition<T>({
@@ -113,11 +123,13 @@ class Tool {
   }) {
     final PopupMenuThemeData popupMenuTheme = PopupMenuTheme.of(context);
     final RenderBox button = context.findRenderObject()! as RenderBox;
-    final overlay = Navigator.of(
-      context,
-    ).overlay!.context.findRenderObject()! as RenderBox;
+    final overlay =
+        Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
 
-    var offset0 = button.localToGlobal(offset ?? const Offset(0, 0), ancestor: overlay);
+    var offset0 = button.localToGlobal(
+      offset ?? const Offset(0, 0),
+      ancestor: overlay,
+    );
 
     final RelativeRect position = RelativeRect.fromLTRB(
       offset0.dx,
@@ -152,6 +164,7 @@ class Tool {
       bottomsheet,
       barrierColor: barrierColor,
       backgroundColor: background,
+      isScrollControlled: true,
     );
   }
 
@@ -167,21 +180,33 @@ class Tool {
       return path.replaceAll('.data', '.mp3');
     }
 
-    var chain = DioChain(headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) aDrive/6.3.1 Chrome/112.0.5615.165 Electron/24.1.3.7 Safari/537.36",
-      "x-canary": "client=Windows,app=adrive,version=v6.4.2",
-      "sec-fetch-dest": "empty",
-      "sec-fetch-mode": "no-cors",
-      "sec-fetch-site": "none",
-    });
+    var chain = DioChain(
+      headers: {
+        "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) aDrive/6.3.1 Chrome/112.0.5615.165 Electron/24.1.3.7 Safari/537.36",
+        "x-canary": "client=Windows,app=adrive,version=v6.4.2",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "no-cors",
+        "sec-fetch-site": "none",
+      },
+    );
 
     List<String> names = [];
 
     try {
-      var response = await chain.head(url).query(params ?? {}).setMemoryCache(double.infinity).setHeaders(headers ?? {});
+      var response = await chain
+          .head(url)
+          .query(params ?? {})
+          .setMemoryCache(double.infinity)
+          .setHeaders(headers ?? {});
       names = response.headers['content-disposition'] ?? [];
     } catch (e) {
-      var response = await chain.get(url).query(params ?? {}).setMemoryCache(double.infinity).setHeaders(headers ?? {}).setRange(0, 1);
+      var response = await chain
+          .get(url)
+          .query(params ?? {})
+          .setMemoryCache(double.infinity)
+          .setHeaders(headers ?? {})
+          .setRange(0, 1);
       names = response.headers['content-disposition'] ?? [];
     }
 
@@ -190,7 +215,10 @@ class Tool {
     }
 
     for (String value in names) {
-      var urlencode = value.replaceAll(RegExp(r"attachment|;|filename|\*|=|UTF-8|''"), '').trim();
+      var urlencode =
+          value
+              .replaceAll(RegExp(r"attachment|;|filename|\*|=|UTF-8|''"), '')
+              .trim();
 
       return Uri.decodeComponent(urlencode);
     }
@@ -217,25 +245,25 @@ class Tool {
       cacheKey: cacheKey,
       headers: referer == null ? null : {"referer": referer},
     );
-    await precacheImage(
-      provider,
-      Get.context!,
-    );
+    await precacheImage(provider, Get.context!);
     if (cacheKey != null) {
-      var result = await CachedNetworkImageProvider.defaultCacheManager.getFileFromCache(cacheKey);
+      var result = await CachedNetworkImageProvider.defaultCacheManager
+          .getFileFromCache(cacheKey);
       return result!.file;
     } else {
-      var result = await CachedNetworkImageProvider.defaultCacheManager.getSingleFile(
-        url,
-        headers: referer == null ? {} : {"referer": referer},
-      );
+      var result = await CachedNetworkImageProvider.defaultCacheManager
+          .getSingleFile(
+            url,
+            headers: referer == null ? {} : {"referer": referer},
+          );
       return result;
     }
   }
 
   static bool isAudioFile(String filePath) {
     final audioExtensions = ['mp3', 'wav', 'm4a', 'ogg', 'flac', 'aac'];
-    final fileExtension = filePath.split('.').last.toLowerCase(); // 判断文件扩展名是否在音频扩展名列表中
+    final fileExtension =
+        filePath.split('.').last.toLowerCase(); // 判断文件扩展名是否在音频扩展名列表中
     return audioExtensions.contains(fileExtension);
   }
 

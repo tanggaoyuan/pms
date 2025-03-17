@@ -494,6 +494,7 @@ class VideoAlbumPage extends GetView<VideoModelController> {
                     PopupMenuItem<String>(
                       value: 'extract',
                       onTap: () async {
+                        controller.pause();
                         await VideoCutPage.to(video);
                         controller.refreshList();
                       },

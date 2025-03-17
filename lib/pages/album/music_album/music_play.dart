@@ -6,12 +6,10 @@ import 'package:get/get.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/utils/export.dart';
+import 'package:media_player_plugin/export.dart';
 
-class MusicPlayPage extends StatelessWidget {
+class MusicPlayPage extends StatefulWidget {
   MusicPlayPage({super.key});
-
-  final audioController = Get.find<AudioController>();
-
   static String path = '/muisc/play';
 
   static to() {
@@ -25,6 +23,27 @@ class MusicPlayPage extends StatelessWidget {
     },
     transition: Transition.rightToLeft,
   );
+
+  @override
+  State<StatefulWidget> createState() {
+    return _MusicPlayPageState();
+  }
+}
+
+class _MusicPlayPageState extends State<MusicPlayPage> {
+  final audioController = Get.find<AudioController>();
+
+  @override
+  initState() {
+    super.initState();
+    audioController.player.enableFFT();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    audioController.player.disableFFT();
+  }
 
   String getPlayModeIcon(PlayMode playMode) {
     switch (playMode) {
@@ -46,6 +65,7 @@ class MusicPlayPage extends StatelessWidget {
             child: ImgComp(
               source: currentSong.cover,
               cacheKey: currentSong.cacheKey,
+              referer: currentSong.extra.referer,
               width: 450.w,
               radius: 30.w,
               fit: BoxFit.cover,
@@ -90,7 +110,9 @@ class MusicPlayPage extends StatelessWidget {
     if (currentSong.lyric.mainLrc.isEmpty) {
       return GestureDetector(
         onTap: () {
-          Tool.showBottomSheet(const SongSheetComp(initIndex: 1));
+          Tool.showBottomSheet(
+            SizedBox(height: 800.w, child: SongSheetComp(initIndex: 1)),
+          );
         },
         child: Center(
           child: Text(
@@ -128,6 +150,7 @@ class MusicPlayPage extends StatelessWidget {
             source: currentSong.cover,
             width: Get.width,
             cacheKey: currentSong.cacheKey,
+            referer: currentSong.extra.referer,
             height: Get.height,
             fit: BoxFit.cover,
           ),
@@ -235,7 +258,9 @@ class MusicPlayPage extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                        Tool.showBottomSheet(const SongSheetComp());
+                        Tool.showBottomSheet(
+                          SizedBox(height: 800.w, child: SongSheetComp()),
+                        );
                       },
                       icon: ImgComp(
                         source: ImgCompIcons.bars,
@@ -245,7 +270,73 @@ class MusicPlayPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 60.w),
+                Material(
+                  color: Colors.transparent, // 保持背景透明
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: InkWell(
+                    onTap: () async {
+                      var bands = await audioController.player.getEqBands();
+                      EqualizerView.show(
+                        context: context,
+                        bands: bands,
+                        onChanged: (index, gain) {
+                          audioController.player.updateBand(index, gain: gain);
+                        },
+                        height: 600.w,
+                        enableEq: audioController.player.isEqActive,
+                        onEqSwitchChanged: (value) {
+                          if (value) {
+                            audioController.player.enableEq();
+                          } else {
+                            audioController.player.disableEq();
+                          }
+                        },
+                        onReset: () {
+                          for (var i = 0; i < bands.length; i++) {
+                            audioController.player.updateBand(i, gain: 0);
+                          }
+                        },
+                      );
+                    },
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    overlayColor: WidgetStateProperty.resolveWith<Color?>((
+                      states,
+                    ) {
+                      if (states.contains(WidgetState.pressed)) {
+                        return Colors.black.withValues(alpha: .1); // 点击时添加深色覆盖
+                      }
+                      return null; // 未点击时保持原样
+                    }),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: .0), // 上部完全透明
+                            Colors.black.withValues(alpha: .2), // 下部黑色 20% 透明度
+                          ],
+                        ),
+                      ),
+                      child: FFtView(
+                        controller: audioController.player,
+                        width: Get.width,
+                        indicatorWidth: 2,
+                        spaceWidth: 1,
+                        color: Colors.white,
+                        indicatorHeight: 60,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
