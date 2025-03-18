@@ -80,6 +80,7 @@ class _AliyunPageState extends State<AliyunPage> {
 
   @override
   void dispose() {
+    _webViewController.runJavaScript('localStorage.removeItem("token")');
     super.dispose();
     timeref?.cancel();
   }

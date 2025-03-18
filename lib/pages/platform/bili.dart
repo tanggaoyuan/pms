@@ -76,7 +76,11 @@ class _AliyunPageState extends State<BiliPage> {
     super.initState();
     _webViewController = WebViewController();
     _webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
-    _webViewController.loadRequest(Uri.parse('https://www.bilibili.com/'));
+    _webViewController.loadRequest(
+      Uri.parse(
+        'https://www.bilibili.com?key=${DateTime.now().millisecondsSinceEpoch}',
+      ),
+    );
     _webViewController.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     );
@@ -91,26 +95,78 @@ class _AliyunPageState extends State<BiliPage> {
           String javascript = '''
               var style = document.createElement('style');
               style.textContent = `
-                .bili-mini-content-wp {
-                    position: absolute !important;
-                    top: 0 !important;
-                    width: 110vw !important;
-                    height: 100vh !important;
-                    padding: 0 !important;
-                    margin: 0 !important;
-                    padding-top:2vh !important;
-                    right: 125vw !important;
-                       transform: scale(2.5) !important;
-                      transform-origin: 0 0 !important;
-                           overflow: hidden !important;
-                }
+                   #i_cecream {
+                width: 100vw;
+                height: 100vh;
+                overflow: hidden;
+                visibility: hidden;
+            }
+            .bili-mini-mask {
+                visibility: hidden;
+            }
+            .bili-mini-login-right-wp {
+                font-size: 40px;
+                position: fixed;
+                top: 0px;
+                left: 0px;
+                width: 100vw;
+                height: 100vh;
+                background: white;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                visibility: visible;
+            }
+            .login-tab-item {
+                font-size: 40px !important;
+                margin-bottom: 20px !important;
+            }
+            .tab__form {
+                font-size: 30px !important;
+            }
+            .login-tab-wp,.login-pwd-wp,.btn_wp {
+                width: 80vw !important;
+                height: auto !important;
+            }
+            .tab__form {
+                width:100%;
+                height: auto !important;
+            }
+            .form__item {
+                height: 80px !important;
+            }
+            .form__item input {
+                font-size: 30px !important;
+            }
+            .btn_primary {
+                height: 80px !important;
+                font-size: 30px !important;
+                flex:1;
+                line-height: 80px !important;
+            }
+                
+            .login-sns-wp,.btn_other {
+                display: none;
+            }
+
+            .geetest_wind.geetest_panel .geetest_panel_box.geetest_panelshowclick {
+                    width: 60vw !important;
+                    height: 60vh !important;
+                    margin-left: -30vw !important;
+                    margin-top: -30vh !important;
+            }
               `;
               
-              document.head.appendChild(style);
+         
 
               var loginElement = document.querySelector('.go-login-btn');
               if (loginElement) {
                   loginElement.click();
+                     setTimeout(function(){
+                        document.head.appendChild(style);
+                      },1000)
+                 
               } else {
                   console.log('Login element not found');
               }
@@ -136,6 +192,7 @@ class _AliyunPageState extends State<BiliPage> {
   void dispose() {
     super.dispose();
     timeref?.cancel();
+    cookieManager.clearCookies();
   }
 
   @override
