@@ -34,6 +34,7 @@ class AudioController extends GetxController {
   var time = 0.obs;
 
   init() async {
+    await player.init();
     final store = await Hive.openBox('media');
     List list = store.get("songs") ?? [];
 
@@ -50,8 +51,7 @@ class AudioController extends GetxController {
 
     await store.close();
 
-    await player.init();
-    await player.enablePlayback();
+    
     player.registerPlayBackEvent(
       onPlayBackPrevious: prev,
       onPlayBackNext: next,
@@ -61,9 +61,6 @@ class AudioController extends GetxController {
       player.playStateStream!.listen((event) {
         playing.value = event.isPlaying;
         isBuffering.value = event.isBuffering;
-
-        Tool.log(["isBuffering", event.isBuffering]);
-
         if (event.isPlayCompleted) {
           if (playMode.value == PlayMode.one) {
             play(current.value);
@@ -86,6 +83,9 @@ class AudioController extends GetxController {
       await play(current.value);
       await player.pause();
     }
+
+    player.enablePlayback();
+
 
     _timerRef = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!enableTimeMode.value) {
@@ -130,26 +130,11 @@ class AudioController extends GetxController {
       var oc = await CachedNetworkImageProvider.defaultCacheManager
           .getFileFromCache(song.cacheKey);
       if (oc != null && oc.file.existsSync()) {
-        artUri = oc.file.path;
+        artUri = 'file://${oc.file.path}';
       } else {
         artUri = song.cover;
       }
-    } else if (song.cover.startsWith('assets/')) {
-      var savePath = await Tool.getCoverStorePath();
-
-      final fileName = song.cover.split('/').last;
-      final filePath = '$savePath/$fileName';
-      File file = File(filePath);
-
-      if (!file.existsSync()) {
-        final byteData = await rootBundle.load(song.cover);
-        var imageBytes = byteData.buffer.asUint8List();
-        await file.writeAsBytes(imageBytes);
-        await file.exists();
-      }
-
-      artUri = 'file://$filePath';
-    } else {
+    }  else {
       artUri = 'file://${song.cover}';
     }
 
@@ -252,9 +237,9 @@ class AudioController extends GetxController {
   @override
   void dispose() {
     super.dispose();
-    for (var item in _subscriptions) {
-      item.cancel();
-    }
+    // for (var item in _subscriptions) {
+    //   item.cancel();
+    // }
     _timerRef.cancel();
     player.destroy();
   }

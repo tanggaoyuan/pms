@@ -85,7 +85,7 @@ class VideoComp extends GetView<HomeController> {
                   EasyLoading.dismiss();
                 } catch (e) {
                   EasyLoading.dismiss();
-                  EasyLoading.showToast(e.toString());
+                  EasyLoading.showToast("操作异常".tr);
                 }
               },
             ),

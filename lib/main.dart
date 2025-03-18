@@ -13,10 +13,8 @@ import 'package:pms/common/theme_config.dart';
 import 'package:pms/pages/export.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:switch_orientation/switch_orientation.dart';
-import 'package:media_player_plugin/export.dart';
 
 initConfig() async {
-  media_player_plugin_restart();
 
   String cachePath = await getDatabasesPath();
   Hive.init(cachePath);
@@ -75,6 +73,8 @@ class MyApp extends StatelessWidget {
             VideoFullPage.page,
             VideoCutPage.page,
             YoutubePage.page,
+            AudioPlayerTest.page,
+            VideoPlayerTest.page,
           ],
         );
       },

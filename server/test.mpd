@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MPD 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+    xmlns="urn:mpeg:dash:schema:mpd:2011"
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+    xsi:schemaLocation="urn:mpeg:DASH:schema:MPD:2011 http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-MPD.xsd" 
+    profiles="urn:mpeg:dash:profile:isoff-live:2011"
+    type="static"
+    mediaPresentationDuration="PT156S"
+    minBufferTime="PT1.5S"
+>
+  <Period id="0" start="PT0S">
+    <AdaptationSet id="0" contentType="video" startWithSAP="1" >
+      <Representation
+      id="80"
+      bandwidth="1463016"
+      codecs="avc1.640032"
+      mimeType="video/mp4"
+      startWithSAP="1"
+      width="1920" height="1080" frameRate="30.303" sar="1:1"
+    >
+      
+      <BaseURL>https://xy183x232x113x182xy.mcdn.bilivideo.cn:8082/v1/resource/1377692173-1-100050.m4s?agrr=1&amp;build=0&amp;buvid=CA836BD1-2CE4-A972-8B11-C5577B7F818508953infoc&amp;bvc=vod&amp;bw=182875&amp;deadline=1742300355&amp;e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M%3D&amp;f=u_0_0&amp;gen=playurlv2&amp;logo=A0020000&amp;mcdnid=50014616&amp;mid=10892307&amp;nbs=1&amp;nettype=0&amp;og=cos&amp;oi=2028726892&amp;orderid=0%2C3&amp;os=mcdn&amp;platform=pc&amp;sign=f9b1f4&amp;traceid=tritdSLleVEhKS_0_e_N&amp;uipk=5&amp;uparams=e%2Cuipk%2Cnbs%2Cdeadline%2Cgen%2Cos%2Coi%2Ctrid%2Cmid%2Cplatform%2Cog&amp;upsig=443d604befafcf653e1319d0874a2734</BaseURL>
+      <SegmentBase indexRange="980-1383">
+        <Initialization range="0-979" />
+      </SegmentBase>
+    </Representation>
+      <Representation
+      id="64"
+      bandwidth="900965"
+      codecs="avc1.640028"
+      mimeType="video/mp4"
+      startWithSAP="1"
+      width="1280" height="720" frameRate="30.303" sar="1:1"
+    >
+      
+      <BaseURL>https://xy42x202x169x17xy.mcdn.bilivideo.cn:4483/upgcxcode/73/21/1377692173/1377692173-1-100048.m4s?e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M=&amp;uipk=5&amp;nbs=1&amp;deadline=1742300355&amp;gen=playurlv2&amp;os=mcdn&amp;oi=2028726892&amp;trid=0000e106ae6d5acb4b1893103d07e87c9c7bu&amp;mid=10892307&amp;platform=pc&amp;og=cos&amp;upsig=aa03defd3b9a34d41b8c0abd584b7ced&amp;uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform,og&amp;mcdnid=50014616&amp;bvc=vod&amp;nettype=0&amp;orderid=0,3&amp;buvid=CA836BD1-2CE4-A972-8B11-C5577B7F818508953infoc&amp;build=0&amp;f=u_0_0&amp;agrr=1&amp;bw=112619&amp;logo=A0020000</BaseURL>
+      <SegmentBase indexRange="980-1383">
+        <Initialization range="0-979" />
+      </SegmentBase>
+    </Representation>
+      <Representation
+      id="32"
+      bandwidth="445257"
+      codecs="avc1.64001F"
+      mimeType="video/mp4"
+      startWithSAP="1"
+      width="852" height="480" frameRate="30.303" sar="1:1"
+    >
+      
+      <BaseURL>https://xy42x202x169x17xy.mcdn.bilivideo.cn:4483/upgcxcode/73/21/1377692173/1377692173-1-100047.m4s?e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M=&amp;uipk=5&amp;nbs=1&amp;deadline=1742300355&amp;gen=playurlv2&amp;os=mcdn&amp;oi=2028726892&amp;trid=0000e106ae6d5acb4b1893103d07e87c9c7bu&amp;mid=10892307&amp;platform=pc&amp;og=cos&amp;upsig=d38aaa3e9bf7617e5bd862f9ab25583d&amp;uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform,og&amp;mcdnid=50014616&amp;bvc=vod&amp;nettype=0&amp;orderid=0,3&amp;buvid=CA836BD1-2CE4-A972-8B11-C5577B7F818508953infoc&amp;build=0&amp;f=u_0_0&amp;agrr=1&amp;bw=55656&amp;logo=A0020000</BaseURL>
+      <SegmentBase indexRange="979-1382">
+        <Initialization range="0-978" />
+      </SegmentBase>
+    </Representation>
+      <Representation
+      id="16"
+      bandwidth="249030"
+      codecs="avc1.64001E"
+      mimeType="video/mp4"
+      startWithSAP="1"
+      width="640" height="360" frameRate="30.303" sar="1:1"
+    >
+      
+      <BaseURL>https://xy42x202x169x17xy.mcdn.bilivideo.cn:4483/upgcxcode/73/21/1377692173/1377692173-1-100046.m4s?e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M=&amp;uipk=5&amp;nbs=1&amp;deadline=1742300355&amp;gen=playurlv2&amp;os=mcdn&amp;oi=2028726892&amp;trid=0000e106ae6d5acb4b1893103d07e87c9c7bu&amp;mid=10892307&amp;platform=pc&amp;og=cos&amp;upsig=e66d72932c83812b3e41eec582bb2ef8&amp;uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform,og&amp;mcdnid=50014616&amp;bvc=vod&amp;nettype=0&amp;orderid=0,3&amp;buvid=CA836BD1-2CE4-A972-8B11-C5577B7F818508953infoc&amp;build=0&amp;f=u_0_0&amp;agrr=1&amp;bw=31128&amp;logo=A0020000</BaseURL>
+      <SegmentBase indexRange="987-1390">
+        <Initialization range="0-986" />
+      </SegmentBase>
+    </Representation>
+    </AdaptationSet>
+    <AdaptationSet id="1" contentType="audio" startWithSAP="1" >
+      <Representation
+      id="30280"
+      bandwidth="197345"
+      codecs="mp4a.40.2"
+      mimeType="audio/mp4"
+      startWithSAP="0"
+      sampleRate="192000"
+    >
+      <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+      <BaseURL>https://xy183x94x183x143xy.mcdn.bilivideo.cn:8082/v1/resource/1377692173-1-30280.m4s?agrr=1&amp;build=0&amp;buvid=CA836BD1-2CE4-A972-8B11-C5577B7F818508953infoc&amp;bvc=vod&amp;bw=24679&amp;deadline=1742300355&amp;e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M%3D&amp;f=u_0_0&amp;gen=playurlv2&amp;logo=A0020000&amp;mcdnid=50014616&amp;mid=10892307&amp;nbs=1&amp;nettype=0&amp;og=cos&amp;oi=2028726892&amp;orderid=0%2C3&amp;os=mcdn&amp;platform=pc&amp;sign=2f614a&amp;traceid=trdCxrdXxfExHh_0_e_N&amp;uipk=5&amp;uparams=e%2Cuipk%2Cnbs%2Cdeadline%2Cgen%2Cos%2Coi%2Ctrid%2Cmid%2Cplatform%2Cog&amp;upsig=93ce657908536f5a7c1b1c0924fce290</BaseURL>
+      <SegmentBase indexRange="934-1349">
+        <Initialization range="0-933" />
+      </SegmentBase>
+    </Representation>
+      <Representation
+      id="30216"
+      bandwidth="49085"
+      codecs="mp4a.40.5"
+      mimeType="audio/mp4"
+      startWithSAP="0"
+      sampleRate="64000"
+    >
+      <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+      <BaseURL>https://xy42x202x169x17xy.mcdn.bilivideo.cn:4483/upgcxcode/73/21/1377692173/1377692173-1-30216.m4s?e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M=&amp;uipk=5&amp;nbs=1&amp;deadline=1742300355&amp;gen=playurlv2&amp;os=mcdn&amp;oi=2028726892&amp;trid=0000e106ae6d5acb4b1893103d07e87c9c7bu&amp;mid=10892307&amp;platform=pc&amp;og=cos&amp;upsig=6129e55511619af1d33f1910f2d150ea&amp;uparams=e,uipk,nbs,deadline,gen,os,oi,trid,mid,platform,og&amp;mcdnid=50014616&amp;bvc=vod&amp;nettype=0&amp;orderid=0,3&amp;buvid=CA836BD1-2CE4-A972-8B11-C5577B7F818508953infoc&amp;build=0&amp;f=u_0_0&amp;agrr=1&amp;bw=6141&amp;logo=A0020000</BaseURL>
+      <SegmentBase indexRange="944-1359">
+        <Initialization range="0-943" />
+      </SegmentBase>
+    </Representation>
+      <Representation
+      id="30232"
+      bandwidth="101765"
+      codecs="mp4a.40.2"
+      mimeType="audio/mp4"
+      startWithSAP="0"
+      sampleRate="132000"
+    >
+      <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+      <BaseURL>https://xy123x138x84x79xy.mcdn.bilivideo.cn:8082/v1/resource/1377692173-1-30232.m4s?agrr=1&amp;build=0&amp;buvid=CA836BD1-2CE4-A972-8B11-C5577B7F818508953infoc&amp;bvc=vod&amp;bw=12726&amp;deadline=1742300355&amp;e=ig8euxZM2rNcNbdlhoNvNC8BqJIzNbfqXBvEqxTEto8BTrNvN0GvT90W5JZMkX_YN0MvXg8gNEV4NC8xNEV4N03eN0B5tZlqNxTEto8BTrNvNeZVuJ10Kj_g2UB02J0mN0B5tZlqNCNEto8BTrNvNC7MTX502C8f2jmMQJ6mqF2fka1mqx6gqj0eN0B599M%3D&amp;f=u_0_0&amp;gen=playurlv2&amp;logo=A0020000&amp;mcdnid=50014616&amp;mid=10892307&amp;nbs=1&amp;nettype=0&amp;og=cos&amp;oi=2028726892&amp;orderid=0%2C3&amp;os=mcdn&amp;platform=pc&amp;sign=020dea&amp;traceid=traTKywlgKmjHZ_0_e_N&amp;uipk=5&amp;uparams=e%2Cuipk%2Cnbs%2Cdeadline%2Cgen%2Cos%2Coi%2Ctrid%2Cmid%2Cplatform%2Cog&amp;upsig=ab8bfaa9521386b4c1386c1eab6a22b2</BaseURL>
+      <SegmentBase indexRange="934-1349">
+        <Initialization range="0-933" />
+      </SegmentBase>
+    </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>

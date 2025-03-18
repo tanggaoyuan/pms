@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -70,10 +72,20 @@ class MusicComp extends GetView<HomeController> {
                     }
 
                     if (album.cover.startsWith('http')) {
-                      var file = await Tool.cacheImg(
+                      File file;
+                      try {
+                       file = await Tool.cacheImg(
                         url: album.cover,
                         referer: user.extra.referer,
-                      );
+                        );
+                      } catch (e) {
+                        user.extra.referer = user.extra.referer==AliyunApi.deviceReferer?AliyunApi.webReferer:AliyunApi.deviceReferer;
+                        await user.update();
+                        file = await Tool.cacheImg(
+                          url: album.cover,
+                          referer: user.extra.referer,
+                        );
+                      }
                       var coverpath = await Tool.getCoverStorePath();
                       var name = file.path.split('/').last;
                       await file.copy('$coverpath/$name');
@@ -87,7 +99,7 @@ class MusicComp extends GetView<HomeController> {
                   EasyLoading.dismiss();
                 } catch (e) {
                   EasyLoading.dismiss();
-                  EasyLoading.showToast(e.toString());
+                  EasyLoading.showToast("操作异常".tr);
                 }
               },
             ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -281,9 +282,9 @@ class VideoModelController extends GetxController {
     var song = videos[index];
     var [audio, video] = await song.getPlayUrl();
 
-    if (audio.isNotEmpty) {
+    if (audio.isNotEmpty||(Platform.isIOS&&video.contains(".mpd"))) {
       var platform = _player.platform;
-      if (platform is NativePlayer) {
+      if (audio.isNotEmpty&&platform is NativePlayer) {
         await platform.setProperty("volume-max", "100");
         await platform.setProperty('audio-files', audio.replaceAll(':', '\\:'));
       }

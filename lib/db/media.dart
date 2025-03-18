@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:pms/apis/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/db/export.dart';
@@ -179,7 +180,7 @@ class MediaDbModel {
     }
 
     // dash 播放
-    if (isBiliPlatform) {
+    if (isBiliPlatform && !(Platform.isIOS&&isAudio)) {
       await user.updateToken();
       var [info] =
           await BiliApi.getVideoSampleInfo(
@@ -197,6 +198,10 @@ class MediaDbModel {
           ).getData();
 
       var filepath = await Tool.getAppCachePath();
+
+
+      var xml =  dash.toXml();
+      print(xml);
 
       await dash.saveXml("$filepath/bili.mpd");
 

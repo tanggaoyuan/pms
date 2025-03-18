@@ -12,7 +12,7 @@ import LXFProtocolTool
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+  override func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
     return UIApplication.shared.lxf.currentVcOrientationMask
   }
 }

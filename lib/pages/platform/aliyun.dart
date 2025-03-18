@@ -63,8 +63,13 @@ class _AliyunPageState extends State<AliyunPage> {
         "JSON.stringify({...window.Global,...JSON.parse(window.localStorage.getItem('token'))})",
       );
 
+
       if (result is String) {
-        var json = jsonDecode(jsonDecode(result));
+        var json = jsonDecode(result);
+
+        if(json is String){
+          json = jsonDecode(json);
+        }
 
         var refreshToken = json['refresh_token'];
         var appId = json['app_id'];

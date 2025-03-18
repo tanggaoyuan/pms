@@ -260,7 +260,6 @@ class AlbumDbModel {
 
   static Future<int> insert(AlbumDbModel model) async {
     final db = await _init();
-
     final map = model.toMap();
     map.remove('id');
     var id = await db.insert(

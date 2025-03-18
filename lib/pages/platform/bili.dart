@@ -54,7 +54,11 @@ class _AliyunPageState extends State<BiliPage> {
       );
 
       if (store is String) {
-        var json = jsonDecode(jsonDecode(store));
+        var json = jsonDecode(store);
+
+        if(json is String){
+          json = jsonDecode(json);
+        }
 
         var acTimeValue = json['ac_time_value'];
         if (biliJct is String &&
@@ -93,9 +97,9 @@ class _AliyunPageState extends State<BiliPage> {
         onPageStarted: (String url) {},
         onPageFinished: (String url) async {
           String javascript = '''
-              var style = document.createElement('style');
-              style.textContent = `
-                   #i_cecream {
+              var style = document.createElement("style");
+        style.textContent = `
+            #i_cecream {
                 width: 100vw;
                 height: 100vh;
                 overflow: hidden;
@@ -105,10 +109,10 @@ class _AliyunPageState extends State<BiliPage> {
                 visibility: hidden;
             }
             .bili-mini-login-right-wp {
-                font-size: 40px;
+                font-size: 5.3vw; 
                 position: fixed;
-                top: 0px;
-                left: 0px;
+                top: 0;
+                left: 0;
                 width: 100vw;
                 height: 100vh;
                 background: white;
@@ -119,59 +123,50 @@ class _AliyunPageState extends State<BiliPage> {
                 visibility: visible;
             }
             .login-tab-item {
-                font-size: 40px !important;
-                margin-bottom: 20px !important;
+                font-size: 5.3vw !important; 
+                margin-bottom: 2.67vw !important; 
             }
             .tab__form {
-                font-size: 30px !important;
+                font-size: 4vw !important; 
             }
-            .login-tab-wp,.login-pwd-wp,.btn_wp {
+            .login-tab-wp, .login-pwd-wp, .btn_wp {
                 width: 80vw !important;
                 height: auto !important;
             }
             .tab__form {
-                width:100%;
+                width: 100vw;
                 height: auto !important;
             }
             .form__item {
-                height: 80px !important;
+                height: 11vw !important; 
             }
             .form__item input {
-                font-size: 30px !important;
+                font-size: 4vw !important; 
             }
             .btn_primary {
-                height: 80px !important;
-                font-size: 30px !important;
-                flex:1;
-                line-height: 80px !important;
+                height: 11vw !important; 
+                font-size: 4vw !important; 
+                flex: 1;
+                line-height: 11vw !important;
             }
-                
-            .login-sns-wp,.btn_other {
+            .login-sns-wp, .btn_other {
                 display: none;
             }
-
             .geetest_wind.geetest_panel .geetest_panel_box.geetest_panelshowclick {
-                    width: 60vw !important;
-                    height: 60vh !important;
-                    margin-left: -30vw !important;
-                    margin-top: -30vh !important;
+                width: 60vw !important;
+                height: 60vh !important;
+                margin-left: -30vw !important;
+                margin-top: -30vh !important;
             }
-              `;
-              
-         
+        `;
 
-              var loginElement = document.querySelector('.go-login-btn');
-              if (loginElement) {
-                  loginElement.click();
-                     setTimeout(function(){
-                        document.head.appendChild(style);
-                      },1000)
-                 
-              } else {
-                  console.log('Login element not found');
-              }
-          
+            var loginElement = document.querySelector(".go-login-btn");
+            if (loginElement) {
+                loginElement.click();
+               document.head.appendChild(style);
+            }
           ''';
+
           await _webViewController.runJavaScript(javascript);
 
           check();
