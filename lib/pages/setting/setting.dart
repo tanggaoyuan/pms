@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/components/cache_buttom.dart';
-import 'package:pms/db/export.dart';
 import 'package:pms/pages/export.dart';
 import 'package:pms/utils/export.dart';
 import 'package:simple_ruler_picker/simple_ruler_picker.dart';
@@ -322,7 +321,6 @@ class SettingPage extends GetView<SettingController> {
                 // users.forEach((item) {
                 //   print(item.toMap());
                 // });
-
 
                 // AudioPlayerTest.to();
                 VideoPlayerTest.to();

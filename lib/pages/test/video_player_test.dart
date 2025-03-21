@@ -25,14 +25,21 @@ class VideoPlayerTest extends StatefulWidget {
 }
 
 class _VideoPlayerTest extends State {
-  late final player = Player();
+  late final player = Player(
+    configuration: PlayerConfiguration(logLevel: MPVLogLevel.error),
+  );
   late final controller = VideoController(player);
   final String baseUrl = "http://192.168.110.218:5500";
 
   @override
   void initState() {
     super.initState();
-    player.open(Media('$baseUrl/dash/1080p.mpd'));
+    player.open(
+      Media(
+        '$baseUrl/test.mpd',
+        httpHeaders: {"referrer": "https://www.bilibili.com/"},
+      ),
+    );
     player.play();
   }
 

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON to DASH XML</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      textarea {
+        width: 100%;
+        height: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Paste JSON Data</h2>
+    <textarea id="jsonInput" placeholder="Paste your JSON here..."></textarea>
+    <button onclick="convertJsonToXml()">Convert to XML</button>
+    <h2>Generated XML</h2>
+    <textarea id="xmlOutput" readonly></textarea>
+
+    <script>
+      class SegmentHelper {
+        constructor(data) {
+          this.width = data.width || 0;
+          this.height = data.height || 0;
+          this.frameRate = data.frameRate || "30";
+          this.sar = data.sar || "N/A";
+          this.audioSamplingRate = data.audioSamplingRate || 44100;
+          this.startWithSAP = data.startWithSap || 0;
+          this.id = data.id;
+          this.bandwidth = data.bandwidth;
+          this.codecs = data.codecs;
+          this.mimeType = data.mimeType;
+          this.url = data.baseUrl;
+          this.indexRange = data.segment_base.index_range;
+          this.initialization = data.segment_base.initialization;
+        }
+
+        toXml() {
+          let extra = this.mimeType.startsWith("video")
+            ? `width="${this.width}" height="${this.height}" frameRate="${this.frameRate}" sar="${this.sar}"`
+            : `sampleRate="${this.audioSamplingRate}"`;
+
+          return `<Representation id="${this.id}" bandwidth="${
+            this.bandwidth
+          }" codecs="${this.codecs}" mimeType="${
+            this.mimeType
+          }" startWithSAP="${this.startWithSAP}" ${extra}>
+                    ${
+                      this.mimeType.startsWith("audio")
+                        ? '<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />'
+                        : ""
+                    }
+                    <BaseURL>${this.url.replace(/&/g, "&amp;")}</BaseURL>
+                    <SegmentBase indexRange="${this.indexRange}">
+                        <Initialization range="${this.initialization}" />
+                    </SegmentBase>
+                </Representation>`;
+        }
+      }
+
+      class DashHelper {
+        constructor(data) {
+          this.mediaPresentationDuration = data.duration;
+          this.minBufferTime = data.minBufferTime;
+          this.audios = data.audio.map((item) => new SegmentHelper(item));
+          this.videos = data.video.map((item) => new SegmentHelper(item));
+        }
+
+        toXml() {
+          return `<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:mpeg:dash:schema:mpd:2011"
+    profiles="urn:mpeg:dash:profile:isoff-live:2011" type="static"
+    mediaPresentationDuration="PT${
+      this.mediaPresentationDuration
+    }S" minBufferTime="PT${this.minBufferTime}S">
+    <Period id="0" start="PT0S">
+        <AdaptationSet id="0" contentType="video" startWithSAP="1">
+            ${this.videos.map((v) => v.toXml()).join("\n            ")}
+        </AdaptationSet>
+        <AdaptationSet id="1" contentType="audio" startWithSAP="1">
+            ${this.audios.map((a) => a.toXml()).join("\n            ")}
+        </AdaptationSet>
+    </Period>
+</MPD>`;
+        }
+      }
+
+      function convertJsonToXml() {
+        const jsonInput = document.getElementById("jsonInput").value;
+        const output = document.getElementById("xmlOutput");
+        try {
+          const json = JSON.parse(jsonInput);
+          const dashHelper = new DashHelper(json);
+          output.value = dashHelper.toXml();
+        } catch (error) {
+          alert("Invalid JSON format");
+        }
+      }
+    </script>
+  </body>
+</html>
