@@ -5,6 +5,7 @@ import 'package:pms/bindings/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/pages/export.dart';
 import 'package:pms/utils/export.dart';
+import 'package:string_normalizer/string_normalizer.dart';
 
 class SongBottomBarComp extends StatelessWidget {
   const SongBottomBarComp({super.key});
@@ -177,7 +178,7 @@ class _SongBottomBarState extends State<_SongBottomBar> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    song.name,
+                                    StringNormalizer.normalize(song.name),
                                     style: TextStyle(
                                       fontSize: 26.sp,
                                       overflow: TextOverflow.ellipsis,
@@ -186,7 +187,8 @@ class _SongBottomBarState extends State<_SongBottomBar> {
                                   ),
                                   SizedBox(height: 6.w),
                                   Text(
-                                    song.platform.name,
+                                    StringNormalizer.normalize(
+                                        song.platform.name),
                                     style: TextStyle(
                                       fontSize: 22.sp,
                                       color: theme.primaryColor.withValues(
@@ -214,10 +216,9 @@ class _SongBottomBarState extends State<_SongBottomBar> {
                   }
                 },
                 icon: ImgComp(
-                  source:
-                      audioController.playing.value
-                          ? ImgCompIcons.pause
-                          : ImgCompIcons.play,
+                  source: audioController.playing.value
+                      ? ImgCompIcons.pause
+                      : ImgCompIcons.play,
                   width: 35.w,
                 ),
               ),

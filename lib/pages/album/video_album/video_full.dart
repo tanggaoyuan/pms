@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import 'package:media_player_plugin/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/pages/album/export.dart';
 import 'package:switch_orientation/switch_orientation.dart';
-import 'package:video_player/video_player.dart';
 
 class VideoFullPage extends StatefulWidget {
   const VideoFullPage({super.key});
@@ -48,187 +47,182 @@ class _VideoFullPageState extends State<VideoFullPage> {
     return Positioned.fill(
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
-        child:
-            videoControlFlag
-                ? GestureDetector(
-                  onTap: () {
-                    controller.showVideoControl();
-                    controller.hideVideoControl(3);
-                  },
-                  child: Container(
-                    color: Colors.black.withValues(alpha: .3),
-                    child: SafeArea(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              controller.setVideoMode(0);
-                              Get.back();
-                            },
-                            icon: const Icon(
-                              Icons.arrow_back_ios,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+        child: videoControlFlag
+            ? GestureDetector(
+                onTap: () {
+                  controller.showVideoControl();
+                  controller.hideVideoControl(3);
+                },
+                child: Container(
+                  color: Colors.black.withValues(alpha: .3),
+                  child: SafeArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            controller.setVideoMode(0);
+                            Get.back();
+                          },
+                          icon: const Icon(
+                            Icons.arrow_back_ios,
+                            color: Colors.white,
+                            size: 20,
                           ),
-                          Expanded(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    controller.showVideoControl();
-                                    controller.hideVideoControl(3);
-                                    if (isPlaying) {
-                                      controller.pause();
-                                    } else {
-                                      controller.play();
-                                    }
-                                  },
-                                  icon: ImgComp(
-                                    source:
-                                        isPlaying
-                                            ? ImgCompIcons.pause
-                                            : ImgCompIcons.play,
-                                    color: Colors.white,
-                                    width: 30,
-                                  ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  controller.showVideoControl();
+                                  controller.hideVideoControl(3);
+                                  if (isPlaying) {
+                                    controller.pause();
+                                  } else {
+                                    controller.play();
+                                  }
+                                },
+                                icon: ImgComp(
+                                  source: isPlaying
+                                      ? ImgCompIcons.pause
+                                      : ImgCompIcons.play,
+                                  color: Colors.white,
+                                  width: 30,
                                 ),
-                                IconButton(
-                                  onPressed: () {
-                                    controller.showVideoControl();
-                                    controller.hideVideoControl(3);
-                                    controller.togglePlayMode();
-                                  },
-                                  icon: ImgComp(
-                                    source:
-                                        controller.playMode == 0
-                                            ? ImgCompIcons.orderPlay
-                                            : ImgCompIcons.singleTunePlay,
-                                    width: 30,
-                                    color: Colors.white,
-                                  ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  controller.showVideoControl();
+                                  controller.hideVideoControl(3);
+                                  controller.togglePlayMode();
+                                },
+                                icon: ImgComp(
+                                  source: controller.playMode == 0
+                                      ? ImgCompIcons.orderPlay
+                                      : ImgCompIcons.singleTunePlay,
+                                  width: 30,
+                                  color: Colors.white,
                                 ),
-                                const SizedBox(width: 10),
-                                InkWell(
-                                  onTap: () {
-                                    controller.showVideoControl();
-                                    controller.hideVideoControl(3);
-                                    controller.setVideoMode(
-                                      controller.isVertical ? 2 : 1,
+                              ),
+                              const SizedBox(width: 10),
+                              InkWell(
+                                onTap: () {
+                                  controller.showVideoControl();
+                                  controller.hideVideoControl(3);
+                                  controller.setVideoMode(
+                                    controller.isVertical ? 2 : 1,
+                                  );
+                                  if (controller.isHorizontal) {
+                                    SwitchOrientation.setPreferredOrientations(
+                                      [
+                                        DeviceOrientation.landscapeLeft,
+                                        DeviceOrientation.landscapeRight,
+                                      ],
                                     );
-                                    if (controller.isHorizontal) {
-                                      SwitchOrientation.setPreferredOrientations(
-                                        [
-                                          DeviceOrientation.landscapeLeft,
-                                          DeviceOrientation.landscapeRight,
-                                        ],
-                                      );
-                                    } else {
-                                      SwitchOrientation.setPreferredOrientations(
-                                        [
-                                          DeviceOrientation.portraitUp,
-                                          DeviceOrientation.portraitDown,
-                                        ],
-                                      );
-                                    }
-                                  },
-                                  child: SizedBox(
-                                    width: 30,
-                                    height: 30,
-                                    child: Stack(
-                                      children: [
-                                        Positioned(
-                                          bottom: 0,
-                                          right: 0,
-                                          child: Opacity(
-                                            opacity:
-                                                controller.isVertical ? 1 : 0.6,
-                                            child: const FaIcon(
+                                  } else {
+                                    SwitchOrientation.setPreferredOrientations(
+                                      [
+                                        DeviceOrientation.portraitUp,
+                                        DeviceOrientation.portraitDown,
+                                      ],
+                                    );
+                                  }
+                                },
+                                child: SizedBox(
+                                  width: 30,
+                                  height: 30,
+                                  child: Stack(
+                                    children: [
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Opacity(
+                                          opacity:
+                                              controller.isVertical ? 1 : 0.6,
+                                          child: const FaIcon(
+                                            FontAwesomeIcons.mobile,
+                                            color: Colors.white,
+                                            size: 26,
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Opacity(
+                                          opacity:
+                                              controller.isHorizontal ? 1 : 0.5,
+                                          child: const RotatedBox(
+                                            quarterTurns: 3,
+                                            child: FaIcon(
                                               FontAwesomeIcons.mobile,
                                               color: Colors.white,
                                               size: 26,
                                             ),
                                           ),
                                         ),
-                                        Positioned(
-                                          bottom: 0,
-                                          right: 0,
-                                          child: Opacity(
-                                            opacity:
-                                                controller.isHorizontal
-                                                    ? 1
-                                                    : 0.5,
-                                            child: const RotatedBox(
-                                              quarterTurns: 3,
-                                              child: FaIcon(
-                                                FontAwesomeIcons.mobile,
-                                                color: Colors.white,
-                                                size: 26,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            height: 40,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              header.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                overflow: TextOverflow.ellipsis,
-                                fontSize: 12,
                               ),
-                              softWrap: true,
-                              maxLines: 2,
-                            ),
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: ProgressBar(
-                              progress: position,
-                              buffered: buffered,
-                              total: duration,
-                              progressBarColor: Colors.white,
-                              baseBarColor: Colors.white.withValues(alpha: .24),
-                              bufferedBarColor: Colors.white.withValues(
-                                alpha: .24,
-                              ),
-                              thumbColor: Colors.white,
-                              barHeight: 4,
-                              thumbRadius: 6,
-                              thumbGlowRadius: 10,
-                              timeLabelTextStyle: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              ),
-                              onSeek: (duration) {
-                                controller.seek(duration);
-                              },
-                              onDragStart: (details) {
-                                controller.showVideoControl();
-                              },
-                              onDragEnd: () {
-                                controller.hideVideoControl(3);
-                              },
+                        ),
+                        Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            header.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 12,
                             ),
+                            softWrap: true,
+                            maxLines: 2,
                           ),
-                          const SizedBox(height: 40),
-                        ],
-                      ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: ProgressBar(
+                            progress: position,
+                            buffered: buffered,
+                            total: duration,
+                            progressBarColor: Colors.white,
+                            baseBarColor: Colors.white.withValues(alpha: .24),
+                            bufferedBarColor: Colors.white.withValues(
+                              alpha: .24,
+                            ),
+                            thumbColor: Colors.white,
+                            barHeight: 4,
+                            thumbRadius: 6,
+                            thumbGlowRadius: 10,
+                            timeLabelTextStyle: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                            onSeek: (duration) {
+                              controller.seek(duration);
+                            },
+                            onDragStart: (details) {
+                              controller.showVideoControl();
+                            },
+                            onDragEnd: () {
+                              controller.hideVideoControl(3);
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                      ],
                     ),
                   ),
-                )
-                : const SizedBox(),
+                ),
+              )
+            : const SizedBox(),
       ),
     );
   }
@@ -284,7 +278,6 @@ class _VideoFullPageState extends State<VideoFullPage> {
             builder: (controller) {
               var page = index % controller.videos.length;
               var video = controller.videos[page];
-              var videoPlayController = controller.videoPlayController?.value;
 
               return Stack(
                 children: [
@@ -295,33 +288,18 @@ class _VideoFullPageState extends State<VideoFullPage> {
                     },
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 500),
-                      child:
-                          controller.playIndex.value != page
-                              ? Center(
-                                child: ImgComp(
-                                  source: video.cover,
-                                  cacheKey: video.cacheKey,
-                                  referer: video.extra.referer,
-                                ),
-                              )
-                              : Center(
-                                child:
-                                    videoPlayController == null
-                                        ? Video(
-                                          controller:
-                                              controller.videoController,
-                                          controls: null,
-                                        )
-                                        : AspectRatio(
-                                          aspectRatio:
-                                              videoPlayController
-                                                  .value
-                                                  .aspectRatio,
-                                          child: VideoPlayer(
-                                            videoPlayController,
-                                          ),
-                                        ),
+                      child: controller.playIndex.value != page
+                          ? Center(
+                              child: ImgComp(
+                                source: video.cover,
+                                cacheKey: video.cacheKey,
+                                referer: video.extra.referer,
                               ),
+                            )
+                          : Center(
+                              child:
+                                  MediaVideoView(controller: controller.player),
+                            ),
                     ),
                   ),
                   renderVideoControllBar(context),

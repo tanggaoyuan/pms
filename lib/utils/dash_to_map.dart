@@ -5,7 +5,6 @@ class SegmentHelper {
   int height;
   String frameRate;
   String sar;
-  int audioSamplingRate;
   String id;
   int bandwidth;
   String codecs;
@@ -21,7 +20,6 @@ class SegmentHelper {
     this.height = 0,
     this.frameRate = "30",
     this.sar = "N/A",
-    this.audioSamplingRate = 44100,
     this.startWithSAP = 0,
     required this.id,
     required this.bandwidth,
@@ -39,8 +37,6 @@ class SegmentHelper {
     if (isVideo) {
       extra =
           'width="$width" height="$height" frameRate="$frameRate" sar="$sar"';
-    } else {
-      extra = 'sampleRate="$audioSamplingRate"';
     }
 
     var xml = '''<Representation
@@ -64,16 +60,16 @@ class SegmentHelper {
   static SegmentHelper formBili(Map segment) {
     Map vodAudioId = {"30280": 192000, "30232": 132000, "30216": 64000};
     String id = segment["id"].toString();
+    String codecs = segment["codecs"].toString();
     return SegmentHelper(
       width: segment["width"],
       height: segment["height"],
       frameRate: segment["frameRate"],
       sar: segment["sar"],
-      id: id,
-      audioSamplingRate: vodAudioId[id] ?? 0,
+      id: "${id}_$codecs",
       startWithSAP: segment["startWithSap"],
-      bandwidth: segment["bandwidth"],
-      codecs: segment["codecs"],
+      bandwidth: vodAudioId[id] ?? segment["bandwidth"],
+      codecs: codecs,
       mimeType: segment["mimeType"],
       url: segment["baseUrl"],
       indexRange: segment["segment_base"]["index_range"],
@@ -98,21 +94,6 @@ class DashHelper {
   static DashHelper formBili(Map dash) {
     List audios = dash["audio"];
     List videos = dash["video"];
-
-    List avcList = videos.where((element) => element["codecid"] == 7).toList();
-    List hevList = videos.where((element) => element["codecid"] == 12).toList();
-    List avList = videos.where((element) => element["codecid"] == 13).toList();
-    List mp4aList = videos.where((element) => element["codecid"] == 0).toList();
-
-    if (avcList.isNotEmpty) {
-      videos = avcList;
-    } else if (hevList.isNotEmpty) {
-      videos = hevList;
-    } else if (avList.isNotEmpty) {
-      videos = avList;
-    } else if (mp4aList.isNotEmpty) {
-      videos = mp4aList;
-    }
 
     return DashHelper(
       mediaPresentationDuration: dash["duration"],

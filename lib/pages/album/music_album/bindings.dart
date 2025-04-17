@@ -94,14 +94,13 @@ class MusicModelController extends GetxController {
     }
 
     if (album.isAliyunPlatform) {
-      var fileSize =
-          await AliyunApi.getFolderSizeInfo(
-            fileId: album.relationId,
-            driveId: user.extra.driveId,
-            xDeviceId: user.extra.xDeviceId,
-            token: user.accessToken,
-            xSignature: user.extra.xSignature,
-          ).getData();
+      var fileSize = await AliyunApi.getFolderSizeInfo(
+        fileId: album.relationId,
+        driveId: user.extra.driveId,
+        xDeviceId: user.extra.xDeviceId,
+        token: user.accessToken,
+        xSignature: user.extra.xSignature,
+      ).getData();
       if (album.count != fileSize.fileCount) {
         album.count = fileSize.fileCount;
         await album.update();
@@ -129,20 +128,17 @@ class MusicModelController extends GetxController {
 
     if (album.isAliyunPlatform && nextMarker.isNotEmpty) {
       await user.updateToken();
-      var response =
-          await AliyunApi.search(
-            driveId: user.extra.driveId,
-            xDeviceId: user.extra.xDeviceId,
-            token: user.accessToken,
-            xSignature: user.extra.xSignature,
-            parentFileIds: [album.relationId],
-            categorys: ["audio"],
-            limit: 50,
-            marker:
-                (nextMarker.isEmpty || nextMarker == 'init')
-                    ? null
-                    : nextMarker,
-          ).setLocalCache(cacheTime).getData();
+      var response = await AliyunApi.search(
+        driveId: user.extra.driveId,
+        xDeviceId: user.extra.xDeviceId,
+        token: user.accessToken,
+        xSignature: user.extra.xSignature,
+        parentFileIds: [album.relationId],
+        categorys: ["audio"],
+        limit: 50,
+        marker:
+            (nextMarker.isEmpty || nextMarker == 'init') ? null : nextMarker,
+      ).setLocalCache(cacheTime).getData();
 
       List<MediaDbModel> items = [];
 
@@ -189,37 +185,36 @@ class MusicModelController extends GetxController {
       }
       return;
     } else if (album.isBiliPlatform && hasMore) {
-      var promise =
-          album.isSelf == 1
-              ? BiliApi.getFavVideos(
-                mediaId: album.relationId,
-                cookie: user.accessToken,
-                limit: 40,
-                page: page + 1,
-              )
-              : BiliApi.getSubVideos(
-                seasonId: album.relationId,
-                cookie: user.accessToken,
-                limit: 40,
-                page: page + 1,
-              );
+      var promise = album.isSelf == 1
+          ? BiliApi.getFavVideos(
+              mediaId: album.relationId,
+              cookie: user.accessToken,
+              limit: 40,
+              page: page + 1,
+            )
+          : BiliApi.getSubVideos(
+              seasonId: album.relationId,
+              cookie: user.accessToken,
+              limit: 40,
+              page: page + 1,
+            );
 
       var response = await promise.setLocalCache(cacheTime).getData();
 
-      var items =
-          response.medias
-              .where((item) => !item.isExpire)
-              .map(
-                (item) =>
-                    _downloads[item.bvid] ??
-                    MediaDbModel.fromBili(
-                      album: album,
-                      user: user,
-                      file: item,
-                      type: MediaTagType.muisc,
-                    ),
-              )
-              .toList();
+      var items = response.medias
+          .where((item) => !item.isExpire)
+          .map(
+            (item) =>
+                _downloads[item.bvid] ??
+                MediaDbModel.fromBili(
+                  album: album,
+                  user: user,
+                  file: item,
+                  type: MediaTagType.muisc,
+                  mimeType: "audio/m4a",
+                ),
+          )
+          .toList();
       if (page == 0) {
         songs.value = items;
       } else {
@@ -239,38 +234,34 @@ class MusicModelController extends GetxController {
       }
     } else if (album.isNeteasePlatform && hasMore) {
       if (album.relationId.contains('cloud')) {
-        var response =
-            await NeteaseApi.getCloudSong(
-              cookie: user.accessToken,
-              limit: 10000,
-            ).setLocalCache(cacheTime).getData();
-        songs.value =
-            response.songs.map((item) {
-              return _downloads[item.id.toString()] ??
-                  MediaDbModel.fromNetSong(
-                    album: album,
-                    user: user,
-                    file: item,
-                    type: MediaTagType.muisc,
-                  );
-            }).toList();
+        var response = await NeteaseApi.getCloudSong(
+          cookie: user.accessToken,
+          limit: 10000,
+        ).setLocalCache(cacheTime).getData();
+        songs.value = response.songs.map((item) {
+          return _downloads[item.id.toString()] ??
+              MediaDbModel.fromNetSong(
+                album: album,
+                user: user,
+                file: item,
+                type: MediaTagType.muisc,
+              );
+        }).toList();
       } else {
-        var list =
-            await NeteaseApi.getAlbumSongs(
-              id: album.relationId,
-              cookie: user.accessToken,
-              limit: 10000,
-            ).setLocalCache(cacheTime).getData();
-        songs.value =
-            list.map((item) {
-              return _downloads[item.id.toString()] ??
-                  MediaDbModel.fromNetSong(
-                    album: album,
-                    user: user,
-                    file: item,
-                    type: MediaTagType.muisc,
-                  );
-            }).toList();
+        var list = await NeteaseApi.getAlbumSongs(
+          id: album.relationId,
+          cookie: user.accessToken,
+          limit: 10000,
+        ).setLocalCache(cacheTime).getData();
+        songs.value = list.map((item) {
+          return _downloads[item.id.toString()] ??
+              MediaDbModel.fromNetSong(
+                album: album,
+                user: user,
+                file: item,
+                type: MediaTagType.muisc,
+              );
+        }).toList();
       }
 
       hasMore = false;
@@ -279,6 +270,7 @@ class MusicModelController extends GetxController {
       refreshController.refreshCompleted();
       refreshController.loadNoData();
     } else {
+      refreshController.refreshCompleted();
       refreshController.loadNoData();
     }
   }
@@ -464,59 +456,53 @@ class MusicModelController extends GetxController {
               await user.updateToken();
 
               if (album.isNeteasePlatform) {
-                var response =
-                    await NeteaseApi.getCloudSong(
-                      cookie: user.accessToken,
-                      limit: 10000,
-                    ).getData();
-                temps =
-                    response.songs.map((item) {
-                      return MediaDbModel.fromNetSong(
-                        album: album,
-                        user: user,
-                        file: item,
-                        type: MediaTagType.muisc,
-                      );
-                    }).toList();
+                var response = await NeteaseApi.getCloudSong(
+                  cookie: user.accessToken,
+                  limit: 10000,
+                ).getData();
+                temps = response.songs.map((item) {
+                  return MediaDbModel.fromNetSong(
+                    album: album,
+                    user: user,
+                    file: item,
+                    type: MediaTagType.muisc,
+                  );
+                }).toList();
               }
 
               if (album.isAliyunPlatform) {
                 var next = 'init';
                 List<AliFile> items = [];
                 while (next.isNotEmpty) {
-                  var response =
-                      await AliyunApi.search(
-                        driveId: user.extra.driveId,
-                        xDeviceId: user.extra.xDeviceId,
-                        token: user.accessToken,
-                        xSignature: user.extra.xSignature,
-                        parentFileIds: [album.relationId],
-                        fileIds: songs.map((item) => item.relationId).toList(),
-                        limit: 100,
-                        marker: next == 'init' ? null : next,
-                      ).getData();
+                  var response = await AliyunApi.search(
+                    driveId: user.extra.driveId,
+                    xDeviceId: user.extra.xDeviceId,
+                    token: user.accessToken,
+                    xSignature: user.extra.xSignature,
+                    parentFileIds: [album.relationId],
+                    fileIds: songs.map((item) => item.relationId).toList(),
+                    limit: 100,
+                    marker: next == 'init' ? null : next,
+                  ).getData();
 
                   next = response.nextMarker;
                   items.addAll(response.items);
                 }
-                temps =
-                    items.map((item) {
-                      return MediaDbModel.fromAliFile(
-                        album: album,
-                        user: user,
-                        file: item,
-                        type: MediaTagType.muisc,
-                      );
-                    }).toList();
+                temps = items.map((item) {
+                  return MediaDbModel.fromAliFile(
+                    album: album,
+                    user: user,
+                    file: item,
+                    type: MediaTagType.muisc,
+                  );
+                }).toList();
               }
 
               var keys = temps.map((item) => item.relationId).toList();
 
               for (var item in songs) {
                 // 如果上传的是网易 歌曲是视频则跳过
-                if (keys.contains(item.relationId) ||
-                    (album.isNeteasePlatform &&
-                        item.mimeType.contains('video'))) {
+                if (keys.contains(item.relationId)) {
                   continue;
                 }
                 var controller = Get.find<TaskController>();

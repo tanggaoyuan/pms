@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pms/db/user.dart';
 import 'package:pms/utils/export.dart';
-import 'package:webview_cookie_manager_plus/webview_cookie_manager_plus.dart';
+import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class NeteasePage extends StatefulWidget {
@@ -33,6 +33,7 @@ class _NeteasePageState extends State<NeteasePage> {
   late WebViewController _webViewController;
   final WebviewCookieManager cookieManager = WebviewCookieManager();
   Timer? timeref;
+  var isClean = false;
 
   @override
   void initState() {
@@ -76,6 +77,7 @@ class _NeteasePageState extends State<NeteasePage> {
       if (csrf is String && csrf.isNotEmpty) {
         timeref?.cancel();
         await UserDbModel.createNeteaseUser(cookie);
+        isClean = true;
         Get.back();
       }
     });
@@ -84,7 +86,9 @@ class _NeteasePageState extends State<NeteasePage> {
   @override
   void dispose() {
     super.dispose();
-    cookieManager.clearCookies();
+    if (isClean) {
+      cookieManager.clearCookies();
+    }
     timeref?.cancel();
   }
 

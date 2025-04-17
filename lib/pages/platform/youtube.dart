@@ -10,11 +10,10 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:get/route_manager.dart';
 import 'package:pms/bindings/audio.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/utils/export.dart';
-import 'package:webview_cookie_manager_plus/webview_cookie_manager_plus.dart';
+import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class YoutubeVideoFormat {

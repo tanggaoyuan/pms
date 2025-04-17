@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/utils/export.dart';
-import 'package:webview_cookie_manager_plus/webview_cookie_manager_plus.dart';
+import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class BiliPage extends StatefulWidget {
@@ -35,6 +35,8 @@ class _AliyunPageState extends State<BiliPage> {
   Timer? timeref;
   final WebviewCookieManager cookieManager = WebviewCookieManager();
 
+  var isClean = false;
+
   void check() {
     timeref?.cancel();
 
@@ -56,7 +58,7 @@ class _AliyunPageState extends State<BiliPage> {
       if (store is String) {
         var json = jsonDecode(store);
 
-        if(json is String){
+        if (json is String) {
           json = jsonDecode(json);
         }
 
@@ -69,6 +71,7 @@ class _AliyunPageState extends State<BiliPage> {
           await UserDbModel.createBiliUser(acTimeValue, cookie);
           _webViewController.clearLocalStorage();
           await cookieManager.clearCookies();
+          isClean = true;
           Get.back();
         }
       }
@@ -97,7 +100,7 @@ class _AliyunPageState extends State<BiliPage> {
         onPageStarted: (String url) {},
         onPageFinished: (String url) async {
           String javascript = '''
-              var style = document.createElement("style");
+        var style = document.createElement("style");
         style.textContent = `
             #i_cecream {
                 width: 100vw;
@@ -159,11 +162,10 @@ class _AliyunPageState extends State<BiliPage> {
                 margin-top: -30vh !important;
             }
         `;
-
+            document.head.appendChild(style);
             var loginElement = document.querySelector(".go-login-btn");
             if (loginElement) {
                 loginElement.click();
-               document.head.appendChild(style);
             }
           ''';
 
@@ -187,7 +189,9 @@ class _AliyunPageState extends State<BiliPage> {
   void dispose() {
     super.dispose();
     timeref?.cancel();
-    cookieManager.clearCookies();
+    if (isClean) {
+      cookieManager.clearCookies();
+    }
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -6,12 +7,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_xlider/flutter_xlider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import 'package:media_player_plugin/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/pages/export.dart';
 import 'package:pms/utils/export.dart';
+import 'package:string_normalizer/string_normalizer.dart';
 
 class VideoCutPage extends StatefulWidget {
   const VideoCutPage({super.key});
@@ -40,10 +41,10 @@ class _VideoCutPageState extends State<VideoCutPage> {
   var model = Get.arguments as MediaDbModel;
   late List<double> ranges = [0, 100];
   late List<double> values = [0, 1];
+  var isInit = false;
   late int index = -1;
 
-  final Player _player = Player();
-  late VideoController videoController;
+  final MediaVideoPlayer player = MediaVideoPlayer();
 
   late bool isPlaying = false;
   late int position = 0;
@@ -53,50 +54,50 @@ class _VideoCutPageState extends State<VideoCutPage> {
   late String art;
 
   init() async {
+    await player.init();
+
+    player.playStateStream!.listen((event) {
+      setState(() {
+        isPlaying = event.isPlaying;
+      });
+    });
+
+    player.durationStream!.listen((event) {
+      if (event.position >= values.last) {
+        player.pause();
+      }
+
+      if (!isInit) {
+        isInit = true;
+        var end = event.duration;
+        if (end == 0) {
+          return;
+        }
+        setState(() {
+          ranges = [0, end];
+          values = ranges;
+        });
+      }
+
+      setState(() {
+        position =
+            isPlaying ? event.position.toInt() - values.first.toInt() : 0;
+      });
+    });
+
     setState(() {
       cover = model.cover;
-      name = model.name;
-      albumName = model.albumName;
-      art = model.artist;
+      name = StringNormalizer.normalize(model.name);
+      albumName = StringNormalizer.normalize(model.albumName);
+      art = StringNormalizer.normalize(model.artist);
     });
-    var platform = _player.platform;
-    if (platform is NativePlayer) {
-      await platform.setProperty("volume-max", "100");
-    }
-    Tool.log(['model.local', model.local]);
-    await _player.open(Media(model.local), play: false);
+
+    await player.setUrl(url: "file://${model.local}");
   }
 
   @override
   void initState() {
     super.initState();
-    videoController = VideoController(_player);
-
-    _player.stream.playing.listen((event) {
-      setState(() {
-        isPlaying = event;
-      });
-    });
-
-    _player.stream.position.listen((event) {
-      if (event.inSeconds >= values.last) {
-        _player.pause();
-      }
-      setState(() {
-        position = isPlaying ? event.inSeconds - values.first.toInt() : 0;
-      });
-    });
-
-    _player.stream.duration.listen((duration) {
-      var end = duration.inSeconds.toDouble();
-      if (end == 0) {
-        return;
-      }
-      setState(() {
-        ranges = [0, end];
-        values = ranges;
-      });
-    });
 
     init();
   }
@@ -104,8 +105,7 @@ class _VideoCutPageState extends State<VideoCutPage> {
   @override
   dispose() {
     super.dispose();
-    _player.pause();
-    _player.dispose();
+    player.destroy();
   }
 
   Widget renderSlider() {
@@ -147,10 +147,9 @@ class _VideoCutPageState extends State<VideoCutPage> {
       tooltip: FlutterSliderTooltip(
         positionOffset: FlutterSliderTooltipPositionOffset(top: 40.w),
         custom: (value) {
-          var text =
-              Duration(
-                seconds: (value as double).toInt(),
-              ).toString().split('.').first;
+          var text = Duration(
+            seconds: (value as double).toInt(),
+          ).toString().split('.').first;
           return Container(
             padding: EdgeInsets.all(10.w),
             decoration: BoxDecoration(
@@ -173,14 +172,14 @@ class _VideoCutPageState extends State<VideoCutPage> {
         },
       ),
       onDragCompleted: (handlerIndex, lowerValue, upperValue) async {
-        await _player.pause();
+        await player.pause();
         if (values.first != lowerValue) {
           index = 0;
-          _player.seek(Duration(seconds: (lowerValue as double).toInt()));
+          player.seek(lowerValue);
         }
         if (values.last != upperValue) {
           index = 1;
-          _player.seek(Duration(seconds: (upperValue as double).toInt()));
+          player.seek(upperValue);
         }
         values = [lowerValue, upperValue];
         setState(() {});
@@ -196,7 +195,7 @@ class _VideoCutPageState extends State<VideoCutPage> {
         children: [
           Expanded(
             child: Center(
-              child: Video(controller: videoController, controls: null),
+              child: MediaVideoView(controller: player),
             ),
           ),
           Container(
@@ -303,41 +302,9 @@ class _VideoCutPageState extends State<VideoCutPage> {
                     ),
                     IconButton(
                       onPressed: () async {
-                        try {
-                          EasyLoading.show(
-                            status: '设置封面中'.tr,
-                            maskType: EasyLoadingMaskType.black,
-                          );
-                          var buffers = await _player.screenshot();
-                          if (buffers == null) {
-                            throw '';
-                          }
-                          var dirpath = await Tool.getCoverStorePath();
-                          var savepath =
-                              '$dirpath/${DateTime.now().toString()}.jpeg';
-
-                          await Directory(dirpath).create(recursive: true);
-                          final file = File(savepath);
-                          await file.writeAsBytes(buffers);
-                          if (cover != model.cover) {
-                            await File(cover).delete();
-                          }
-                          setState(() {
-                            cover = savepath;
-                          });
-                          EasyLoading.dismiss();
-                        } catch (e) {
-                          EasyLoading.dismiss();
-                          EasyLoading.showToast('获取异常'.tr);
-                        }
-                      },
-                      icon: FaIcon(FontAwesomeIcons.camera, size: 40.w),
-                    ),
-                    IconButton(
-                      onPressed: () async {
                         values[index]--;
-                        await _player.pause();
-                        _player.seek(Duration(seconds: values[index].toInt()));
+                        await player.pause();
+                        player.seek(values[index]);
                         setState(() {});
                       },
                       icon: FaIcon(FontAwesomeIcons.anglesLeft, size: 40.w),
@@ -345,12 +312,10 @@ class _VideoCutPageState extends State<VideoCutPage> {
                     IconButton(
                       onPressed: () async {
                         if (isPlaying) {
-                          await _player.pause();
+                          await player.pause();
                         } else {
-                          await _player.seek(
-                            Duration(seconds: values.first.toInt()),
-                          );
-                          await _player.play();
+                          await player.seek(values.first);
+                          await player.play();
                         }
                       },
                       icon: FaIcon(
@@ -363,8 +328,8 @@ class _VideoCutPageState extends State<VideoCutPage> {
                     IconButton(
                       onPressed: () async {
                         values[index]++;
-                        await _player.pause();
-                        _player.seek(Duration(seconds: values[index].toInt()));
+                        await player.pause();
+                        player.seek(values[index]);
                         setState(() {});
                       },
                       icon: FaIcon(FontAwesomeIcons.anglesRight, size: 40.w),

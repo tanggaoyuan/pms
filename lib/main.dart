@@ -6,7 +6,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:media_kit/media_kit.dart';
+import 'package:media_player_plugin/media_player_plugin.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/common/lang.dart';
 import 'package:pms/common/theme_config.dart';
@@ -15,7 +15,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:switch_orientation/switch_orientation.dart';
 
 initConfig() async {
-
   String cachePath = await getDatabasesPath();
   Hive.init(cachePath);
   EasyLoading.instance.indicatorType = EasyLoadingIndicatorType.squareCircle;
@@ -23,7 +22,6 @@ initConfig() async {
   //   'pms_image_cache',
   //   repo: JsonCacheInfoRepository(path: '$cachePath/pms_image_cache.json'),
   // ));
-  MediaKit.ensureInitialized();
   SwitchOrientation.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     // DeviceOrientation.portraitDown,
@@ -40,6 +38,7 @@ void main() async {
     overlays: [SystemUiOverlay.top],
   );
   runApp(const MyApp());
+  MediaPlayerPlugin.restart();
 }
 
 class MyApp extends StatelessWidget {
@@ -74,7 +73,6 @@ class MyApp extends StatelessWidget {
             VideoCutPage.page,
             YoutubePage.page,
             AudioPlayerTest.page,
-            VideoPlayerTest.page,
           ],
         );
       },

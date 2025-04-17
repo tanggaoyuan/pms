@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:media_player_plugin/media_audio_player.dart';
 import 'package:pms/db/export.dart';
-import 'package:pms/utils/export.dart';
 
 enum PlayMode { order, one, random }
 
@@ -38,11 +35,9 @@ class AudioController extends GetxController {
     final store = await Hive.openBox('media');
     List list = store.get("songs") ?? [];
 
-    songs.value =
-        _temps =
-            list.map((item) {
-              return MediaDbModel.fromMap(item);
-            }).toList();
+    songs.value = _temps = list.map((item) {
+      return MediaDbModel.fromMap(item);
+    }).toList();
     current.value = store.get("current") ?? 0;
 
     var playModeIndex = store.get("playModeIndex") ?? 0;
@@ -50,8 +45,8 @@ class AudioController extends GetxController {
     playMode.value = PlayMode.values[playModeIndex];
 
     await store.close();
+    await player.enablePlayback();
 
-    
     player.registerPlayBackEvent(
       onPlayBackPrevious: prev,
       onPlayBackNext: next,
@@ -85,7 +80,6 @@ class AudioController extends GetxController {
     }
 
     player.enablePlayback();
-
 
     _timerRef = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!enableTimeMode.value) {
@@ -122,6 +116,8 @@ class AudioController extends GetxController {
     var song = songs[index];
     var urls = await song.getPlayUrl();
 
+    print("urls ${urls}");
+
     var url = urls.first.isNotEmpty ? urls.first : urls.last;
 
     String artUri = "";
@@ -134,7 +130,7 @@ class AudioController extends GetxController {
       } else {
         artUri = song.cover;
       }
-    }  else {
+    } else {
       artUri = 'file://${song.cover}';
     }
 

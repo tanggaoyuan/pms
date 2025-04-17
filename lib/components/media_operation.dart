@@ -9,8 +9,7 @@ class MediaOperationComp extends StatelessWidget {
     required String name,
     required String albumName,
     required String art,
-  })
-  onSave;
+  }) onSave;
   final _formKey = GlobalKey<FormState>();
 
   late String name;
@@ -55,15 +54,14 @@ class MediaOperationComp extends StatelessWidget {
             horizontal: 20.w,
           ),
         ),
-        validator:
-            allowEmpty
-                ? null
-                : (value) {
-                  if (value == null || value.isEmpty) {
-                    return '请输入'.tr;
-                  }
-                  return null;
-                },
+        validator: allowEmpty
+            ? null
+            : (value) {
+                if (value == null || value.isEmpty) {
+                  return '请输入'.tr;
+                }
+                return null;
+              },
         onSaved: onSaved,
       ),
     );
@@ -73,7 +71,7 @@ class MediaOperationComp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 350,
+      height: 420,
       padding: EdgeInsets.all(30.w),
       child: Form(
         key: _formKey,

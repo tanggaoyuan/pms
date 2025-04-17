@@ -7,6 +7,7 @@ import 'package:pms/bindings/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/utils/export.dart';
 import 'package:media_player_plugin/export.dart';
+import 'package:string_normalizer/string_normalizer.dart';
 
 class MusicPlayPage extends StatefulWidget {
   MusicPlayPage({super.key});
@@ -77,7 +78,7 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
           child: Column(
             children: [
               Text(
-                currentSong.name,
+                StringNormalizer.normalize(currentSong.name),
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: .9),
                   fontSize: 32.sp,
@@ -86,11 +87,11 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
               ),
               SizedBox(height: 8.w),
               Text(
-                [
+                StringNormalizer.normalize([
                   currentSong.platform.name,
                   currentSong.artist,
                   currentSong.albumName,
-                ].where((item) => item.isNotEmpty).join(' • '),
+                ].where((item) => item.isNotEmpty).join(' • ')),
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: .9),
                   fontSize: 24.sp,
@@ -145,7 +146,7 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
 
       return Scaffold(
         body: ObscureComp(
-          obscureColor: Colors.black.withValues(alpha: .1),
+          obscureColor: Colors.black.withValues(alpha: .2),
           background: ImgComp(
             source: currentSong.cover,
             width: Get.width,
@@ -176,10 +177,9 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
                     },
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 500),
-                      child:
-                          showLyric.value
-                              ? renderLyric(context)
-                              : renderCover(),
+                      child: showLyric.value
+                          ? renderLyric(context)
+                          : renderCover(),
                     ),
                   ),
                 ),

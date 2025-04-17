@@ -170,11 +170,10 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
                       child: Text(
                         mainlrc.content,
                         style: TextStyle(
-                          color:
-                              current == index
-                                  ? widget.color
-                                  : widget.color.withValues(alpha: .6),
-                          fontSize: 30.w,
+                          color: current == index
+                              ? widget.color
+                              : widget.color.withValues(alpha: .6),
+                          fontSize: 28.w,
                         ),
                       ),
                     ),
@@ -183,11 +182,10 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
                         child: Text(
                           tranlrc,
                           style: TextStyle(
-                            color:
-                                current == index
-                                    ? widget.color
-                                    : widget.color.withValues(alpha: .6),
-                            fontSize: 28.w,
+                            color: current == index
+                                ? widget.color
+                                : widget.color.withValues(alpha: .6),
+                            fontSize: 26.w,
                           ),
                         ),
                       ),
@@ -203,56 +201,54 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
           right: 0,
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            child:
-                isShowPositionLine
-                    ? Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        color:
-                            showRangeBlock
-                                ? widget.color.withValues(alpha: .1)
-                                : null,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      height: 44,
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
+            child: isShowPositionLine
+                ? Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: showRangeBlock
+                          ? widget.color.withValues(alpha: .1)
+                          : null,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    height: 44,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            Duration(
+                              seconds: mainLrcs[hoverIndex].time.toInt(),
+                            ).toString().split('.').first,
+                            style: TextStyle(
+                              color: widget.color,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(height: 1.5, color: widget.color),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            isShowPositionLine = false;
+                            showRangeBlock = false;
+                            setState(() {});
+                            widget.onPositionChanged(
                               Duration(
                                 seconds: mainLrcs[hoverIndex].time.toInt(),
-                              ).toString().split('.').first,
-                              style: TextStyle(
-                                color: widget.color,
-                                fontSize: 12,
                               ),
-                            ),
+                            );
+                          },
+                          icon: FaIcon(
+                            FontAwesomeIcons.play,
+                            color: widget.color,
+                            size: 20,
                           ),
-                          Expanded(
-                            child: Container(height: 1.5, color: widget.color),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              isShowPositionLine = false;
-                              showRangeBlock = false;
-                              setState(() {});
-                              widget.onPositionChanged(
-                                Duration(
-                                  seconds: mainLrcs[hoverIndex].time.toInt(),
-                                ),
-                              );
-                            },
-                            icon: FaIcon(
-                              FontAwesomeIcons.play,
-                              color: widget.color,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    : null,
+                        ),
+                      ],
+                    ),
+                  )
+                : null,
           ),
         ),
       ],

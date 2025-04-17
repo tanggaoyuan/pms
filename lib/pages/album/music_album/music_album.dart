@@ -9,6 +9,7 @@ import 'package:pms/db/export.dart';
 import 'package:pms/pages/export.dart';
 import 'package:pms/utils/export.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:string_normalizer/string_normalizer.dart';
 
 class MusicAlbumPage extends GetView<MusicModelController> {
   const MusicAlbumPage({super.key});
@@ -176,7 +177,7 @@ class MusicAlbumPage extends GetView<MusicModelController> {
                           ),
                           const SizedBox(width: 16),
                           Text(
-                            album.name,
+                            StringNormalizer.normalize(album.name),
                             style: TextStyle(fontSize: 19, color: fontColor),
                           ),
                         ],
@@ -213,7 +214,7 @@ class MusicAlbumPage extends GetView<MusicModelController> {
                             child: Column(
                               children: [
                                 Text(
-                                  header.name,
+                                  StringNormalizer.normalize(header.name),
                                   style: TextStyle(
                                     color: fontColor.withValues(alpha: .8),
                                     fontSize: 30.sp,
@@ -354,10 +355,9 @@ class MusicAlbumPage extends GetView<MusicModelController> {
                   child: Row(
                     children: [
                       ImgComp(
-                        source:
-                            song.cover.isEmpty
-                                ? ImgCompIcons.mainCover
-                                : song.cover,
+                        source: song.cover.isEmpty
+                            ? ImgCompIcons.mainCover
+                            : song.cover,
                         referer: user.extra.referer,
                         cacheKey: song.cacheKey,
                         width: 100.w,
@@ -370,7 +370,7 @@ class MusicAlbumPage extends GetView<MusicModelController> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              song.name,
+                              StringNormalizer.normalize(song.name),
                               softWrap: true,
                               maxLines: 1,
                               style: TextStyle(
@@ -382,11 +382,11 @@ class MusicAlbumPage extends GetView<MusicModelController> {
                             Opacity(
                               opacity: 0.6,
                               child: Text(
-                                [
+                                StringNormalizer.normalize([
                                   song.platform.name,
                                   song.artist,
                                   song.albumName,
-                                ].where((item) => item.isNotEmpty).join(' • '),
+                                ].where((item) => item.isNotEmpty).join(' • ')),
                                 style: TextStyle(
                                   fontSize: 22.sp,
                                   overflow: TextOverflow.ellipsis,
@@ -415,7 +415,8 @@ class MusicAlbumPage extends GetView<MusicModelController> {
     return Scaffold(
       body: Stack(
         children: [
-          Column(children: [renderHeader(), renderList()]),
+          Column(
+              children: [renderHeader(), renderList(), SizedBox(height: 80.w)]),
           const Positioned(
             bottom: 0,
             left: 0,

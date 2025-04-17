@@ -100,14 +100,13 @@ class MediaDbModel {
 
     await user.updateToken();
     if (isAliyunPlatform) {
-      var url =
-          await AliyunApi.getDonwloadUrl(
-            fileId: relationId,
-            driveId: user.extra.driveId,
-            xDeviceId: user.extra.xDeviceId,
-            token: user.accessToken,
-            xSignature: user.extra.xSignature,
-          ).getData();
+      var url = await AliyunApi.getDonwloadUrl(
+        fileId: relationId,
+        driveId: user.extra.driveId,
+        xDeviceId: user.extra.xDeviceId,
+        token: user.accessToken,
+        xSignature: user.extra.xSignature,
+      ).getData();
       if (isAudio) {
         return [url, ''];
       } else {
@@ -116,28 +115,25 @@ class MediaDbModel {
     }
 
     if (isNeteasePlatform) {
-      var url =
-          await NeteaseApi.getPlayLink(
-            cookie: user.accessToken,
-            id: relationId,
-          ).getData();
+      var url = await NeteaseApi.getPlayLink(
+        cookie: user.accessToken,
+        id: relationId,
+      ).getData();
       return [url, ''];
     }
 
     if (isBiliPlatform) {
-      var [info] =
-          await BiliApi.getVideoSampleInfo(
-            bvid: relationId,
-            cookie: user.accessToken,
-          ).getData();
-      var media =
-          await BiliApi.getPlayInfo(
-            bvid: relationId,
-            cid: info.cid,
-            cookie: user.accessToken,
-            imgKey: user.extra.imgKey,
-            subKey: user.extra.subKey,
-          ).getData();
+      var [info] = await BiliApi.getVideoSampleInfo(
+        bvid: relationId,
+        cookie: user.accessToken,
+      ).getData();
+      var media = await BiliApi.getPlayInfo(
+        bvid: relationId,
+        cid: info.cid,
+        cookie: user.accessToken,
+        imgKey: user.extra.imgKey,
+        subKey: user.extra.subKey,
+      ).getData();
       return [media.audios.first.url, media.videos.first.url];
     }
 
@@ -157,51 +153,43 @@ class MediaDbModel {
     if (isAliyunPlatform) {
       await user.updateToken();
       if (!mimeType.contains('video')) {
-        var list =
-            await AliyunApi.getAudioPreviewList(
-              fileId: relationId,
-              driveId: user.extra.driveId,
-              xDeviceId: user.extra.xDeviceId,
-              token: user.accessToken,
-              xSignature: user.extra.xSignature,
-            ).getData();
+        var list = await AliyunApi.getAudioPreviewList(
+          fileId: relationId,
+          driveId: user.extra.driveId,
+          xDeviceId: user.extra.xDeviceId,
+          token: user.accessToken,
+          xSignature: user.extra.xSignature,
+        ).getData();
         return [list.last.url, ''];
       } else {
-        var list =
-            await AliyunApi.getVideoPreviewList(
-              fileId: relationId,
-              driveId: user.extra.driveId,
-              xDeviceId: user.extra.xDeviceId,
-              token: user.accessToken,
-              xSignature: user.extra.xSignature,
-            ).getData();
+        var list = await AliyunApi.getVideoPreviewList(
+          fileId: relationId,
+          driveId: user.extra.driveId,
+          xDeviceId: user.extra.xDeviceId,
+          token: user.accessToken,
+          xSignature: user.extra.xSignature,
+        ).getData();
         return ['', list.last.url];
       }
     }
 
     // dash 播放
-    if (isBiliPlatform && !(Platform.isIOS&&isAudio)) {
+    if (isBiliPlatform && !(Platform.isIOS && isAudio)) {
       await user.updateToken();
-      var [info] =
-          await BiliApi.getVideoSampleInfo(
-            bvid: relationId,
-            cookie: user.accessToken,
-          ).getData();
+      var [info] = await BiliApi.getVideoSampleInfo(
+        bvid: relationId,
+        cookie: user.accessToken,
+      ).getData();
 
-      var dash =
-          await BiliApi.getPlayDash(
-            bvid: relationId,
-            cid: info.cid,
-            cookie: user.accessToken,
-            imgKey: user.extra.imgKey,
-            subKey: user.extra.subKey,
-          ).getData();
+      var dash = await BiliApi.getPlayDash(
+        bvid: relationId,
+        cid: info.cid,
+        cookie: user.accessToken,
+        imgKey: user.extra.imgKey,
+        subKey: user.extra.subKey,
+      ).getData();
 
       var filepath = await Tool.getAppCachePath();
-
-
-      var xml =  dash.toXml();
-      print(xml);
 
       await dash.saveXml("$filepath/bili.mpd");
 
@@ -261,6 +249,7 @@ class MediaDbModel {
     required UserDbModel user,
     required BliVideoInfo file,
     required MediaTagType type,
+    String mimeType = 'video/m4s',
   }) {
     return MediaDbModel(
       name: file.title,
@@ -273,7 +262,7 @@ class MediaDbModel {
       albumName: album.name,
       artist: file.upperName,
       type: type,
-      mimeType: 'video/m4s',
+      mimeType: mimeType,
       extra: jsonEncode({
         'referer': user.extra.referer,
         'resourceId': '${file.id}:${file.type}',

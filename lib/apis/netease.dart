@@ -11,88 +11,84 @@ import 'package:pms/utils/export.dart';
 import 'package:pointycastle/export.dart';
 import 'package:convert/convert.dart';
 
-var _chain =
-    DioChain(
-      headers: {
-        "Referer": "https://music.163.com/",
-        "origin": "https://music.163.com",
-        "sec-ch-ua":
-            '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Windows"',
-        "sec-fetch-dest": 'empty',
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-origin",
-      },
-      baseUrl: 'https://music.163.com/eapi',
-      interceptor: (chain) async {
-        var baseUrl = chain.options.baseUrl;
-        var isWeapi = baseUrl.contains('weapi') || chain.url.contains('weapi');
-        var isEapi =
-            (baseUrl.contains('eapi') || chain.url.contains('eapi')) &&
-            !isWeapi;
+var _chain = DioChain(
+  headers: {
+    "Referer": "https://music.163.com/",
+    "origin": "https://music.163.com",
+    "sec-ch-ua":
+        '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": 'empty',
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+  },
+  baseUrl: 'https://music.163.com/eapi',
+  interceptor: (chain) async {
+    var baseUrl = chain.options.baseUrl;
+    var isWeapi = baseUrl.contains('weapi') || chain.url.contains('weapi');
+    var isEapi =
+        (baseUrl.contains('eapi') || chain.url.contains('eapi')) && !isWeapi;
 
-        var body = chain.body ?? {};
+    var body = chain.body ?? {};
 
-        var cookieMap = Tool.parseCookie(chain.options.headers['cookie']);
-        var csrfToken = cookieMap['__csrf'] ?? '';
+    var cookieMap = Tool.parseCookie(chain.options.headers['cookie']);
+    var csrfToken = cookieMap['__csrf'] ?? '';
 
-        if (isWeapi && body is Map) {
-          body = {...body, 'csrf_token': csrfToken};
-          chain.body = NeteaseApi.encodeWeApi(body);
-          chain.query({"csrf_token": csrfToken});
-        }
+    if (isWeapi && body is Map) {
+      body = {...body, 'csrf_token': csrfToken};
+      chain.body = NeteaseApi.encodeWeApi(body);
+      chain.query({"csrf_token": csrfToken});
+    }
 
-        if (isEapi && body is Map) {
-          int timestamp = DateTime.now().millisecondsSinceEpoch;
-          int randomNum = Random().nextInt(1000);
-          String formattedRandomNum = randomNum.toString().padLeft(4, '0');
-          String requestId = '${timestamp}_$formattedRandomNum';
-          var header = {
-            'osver':
-                cookieMap['osver'] ??
-                'Microsoft-Windows-10-Professional-build-22631-64bit',
-            'deviceId': cookieMap['deviceId'] ?? 'pms',
-            'appver': cookieMap['appver'] ?? '3.0.18.203152',
-            'os': cookieMap['os'] ?? 'pc',
-            'versioncode': cookieMap['versioncode'] ?? '140',
-            'mobilename': cookieMap['mobilename'] ?? 'pms',
-            'buildver':
-                cookieMap['buildver'] ??
-                DateTime.now().millisecondsSinceEpoch.toString().substring(
+    if (isEapi && body is Map) {
+      int timestamp = DateTime.now().millisecondsSinceEpoch;
+      int randomNum = Random().nextInt(1000);
+      String formattedRandomNum = randomNum.toString().padLeft(4, '0');
+      String requestId = '${timestamp}_$formattedRandomNum';
+      var header = {
+        'osver': cookieMap['osver'] ??
+            'Microsoft-Windows-10-Professional-build-22631-64bit',
+        'deviceId': cookieMap['deviceId'] ?? 'pms',
+        'appver': cookieMap['appver'] ?? '3.0.18.203152',
+        'os': cookieMap['os'] ?? 'pc',
+        'versioncode': cookieMap['versioncode'] ?? '140',
+        'mobilename': cookieMap['mobilename'] ?? 'pms',
+        'buildver': cookieMap['buildver'] ??
+            DateTime.now().millisecondsSinceEpoch.toString().substring(
                   0,
                   10,
                 ),
-            'resolution': cookieMap['resolution'] ?? '1920*1080',
-            '__csrf': csrfToken,
-            'channel': cookieMap['channel'],
-            'requestId': requestId,
-          };
+        'resolution': cookieMap['resolution'] ?? '1920*1080',
+        '__csrf': csrfToken,
+        'channel': cookieMap['channel'],
+        'requestId': requestId,
+      };
 
-          if (cookieMap['MUSIC_U'] != null) {
-            header['MUSIC_U'] = cookieMap['MUSIC_U']!;
-          }
+      if (cookieMap['MUSIC_U'] != null) {
+        header['MUSIC_U'] = cookieMap['MUSIC_U']!;
+      }
 
-          if (cookieMap['MUSIC_A'] != null) {
-            header['MUSIC_A'] = cookieMap['MUSIC_A']!;
-          }
+      if (cookieMap['MUSIC_A'] != null) {
+        header['MUSIC_A'] = cookieMap['MUSIC_A']!;
+      }
 
-          chain.setCookie(Tool.mapToCookieString(header));
+      chain.setCookie(Tool.mapToCookieString(header));
 
-          body['header'] = header;
-          body['er'] = false;
+      body['header'] = header;
+      body['er'] = false;
 
-          chain.body = NeteaseApi.encodeEapi('/api${chain.url}', body);
-        }
+      chain.body = NeteaseApi.encodeEapi('/api${chain.url}', body);
+    }
 
-        // 解密响应数据
-        // return (Response response) async {
-        //   return response;
-        // };
+    // 解密响应数据
+    // return (Response response) async {
+    //   return response;
+    // };
 
-        return null;
-      },
-    ).setUserAgent().headerFormUrlencoded();
+    return null;
+  },
+).setUserAgent().headerFormUrlencoded();
 
 class NeteaseApi {
   static Map<String, String> encodeWeApi(Map data) {
@@ -115,10 +111,9 @@ class NeteaseApi {
     var secretKeyUint8List = cipher.process(
       Uint8List.fromList(randomKeyBytes.reversed.toList()),
     );
-    var encSecKey =
-        secretKeyUint8List
-            .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-            .join();
+    var encSecKey = secretKeyUint8List
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
 
     String content = jsonEncode(data);
 
@@ -217,8 +212,7 @@ class NeteaseApi {
           var json = jsonDecode(response.data ?? '');
           var map = FormatMap(json);
           return map
-              .getString(['data', 0, 'url'])
-              .replaceAll('http://', 'https://');
+              .getString(['data', 0, 'url']).replaceAll('http://', 'https://');
         });
   }
 
@@ -239,11 +233,8 @@ class NeteaseApi {
     required String url,
     String? referer,
   }) {
-    return _chain
-        .getStream(url)
-        .setHeaders({"Connection": "keep-alive"}, false)
-        .setExtra({'encode': false})
-        .setReferer(referer);
+    return _chain.getStream(url).setHeaders({"Connection": "keep-alive"},
+        false).setExtra({'encode': false}).setReferer(referer);
   }
 
   static DioChainResponse deleteSong({
@@ -252,19 +243,16 @@ class NeteaseApi {
     required List<String> tracks,
   }) {
     var url = "/playlist/manipulate/tracks";
-    return _chain
-        .post(url)
-        .send({
-          "pid": int.parse(albumId),
-          "op": "del",
-          "imme": 'true',
-          "trackIds": jsonEncode(
-            tracks.map((id) {
-              return int.parse(id);
-            }).toList(),
-          ),
-        })
-        .setCookie(cookie);
+    return _chain.post(url).send({
+      "pid": int.parse(albumId),
+      "op": "del",
+      "imme": 'true',
+      "trackIds": jsonEncode(
+        tracks.map((id) {
+          return int.parse(id);
+        }).toList(),
+      ),
+    }).setCookie(cookie);
   }
 
   static DioChainResponse deleteCloudSong({
@@ -272,16 +260,13 @@ class NeteaseApi {
     required List<String> tracks,
   }) {
     var url = "/cloud/del";
-    return _chain
-        .post(url)
-        .send({
-          "songIds": jsonEncode(
-            tracks.map((id) {
-              return int.parse(id);
-            }).toList(),
-          ),
-        })
-        .setCookie(cookie);
+    return _chain.post(url).send({
+      "songIds": jsonEncode(
+        tracks.map((id) {
+          return int.parse(id);
+        }).toList(),
+      ),
+    }).setCookie(cookie);
   }
 
   static DioChainResponse<NetUploadFile> uploadCheck({
@@ -364,15 +349,12 @@ class NeteaseApi {
     var url =
         '$domain/$bucket/${file.objectKey}?offset=0&complete=true&version=1.0';
     var chunk = file.getChunk();
-    return _chain
-        .post(url, data: chunk)
-        .setHeaders({
-          'x-nos-token': file.token,
-          'Content-MD5': file.md5,
-          'Content-Type': file.mimetype,
-          'Content-Length': file.fileSize,
-        })
-        .setCookie(cookie);
+    return _chain.post(url, data: chunk).setHeaders({
+      'x-nos-token': file.token,
+      'Content-MD5': file.md5,
+      'Content-Type': file.mimetype,
+      'Content-Length': file.fileSize,
+    }).setCookie(cookie);
   }
 
   static DioChainResponse<int> uploadFileSave({
@@ -435,10 +417,14 @@ class NeteaseApi {
 
   static DioChainResponse<NetLrc> getLyric(int id) {
     var url = '/song/lyric';
-    return _chain
-        .post<String>(url)
-        .send({'id': id, 'tv': -1, 'lv': -1, 'rv': -1, 'kv': -1, '_nmclfl': 1})
-        .format(NetLrc.fromResponse);
+    return _chain.post<String>(url).send({
+      'id': id,
+      'tv': -1,
+      'lv': -1,
+      'rv': -1,
+      'kv': -1,
+      '_nmclfl': 1
+    }).format(NetLrc.fromResponse);
   }
 }
 

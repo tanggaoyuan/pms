@@ -32,12 +32,18 @@ class _AliyunPageState extends State<AliyunPage> {
   late WebViewController _webViewController;
   Timer? timeref;
 
+  var isClean = false;
+
   @override
   void initState() {
     super.initState();
     _webViewController = WebViewController();
     _webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
+    _webViewController.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0');
+
     _webViewController.loadRequest(Uri.parse('https://www.alipan.com/sign/in'));
+
     _webViewController.setNavigationDelegate(
       NavigationDelegate(
         onProgress: (int progress) {
@@ -63,11 +69,10 @@ class _AliyunPageState extends State<AliyunPage> {
         "JSON.stringify({...window.Global,...JSON.parse(window.localStorage.getItem('token'))})",
       );
 
-
       if (result is String) {
         var json = jsonDecode(result);
 
-        if(json is String){
+        if (json is String) {
           json = jsonDecode(json);
         }
 
@@ -77,6 +82,7 @@ class _AliyunPageState extends State<AliyunPage> {
         if (refreshToken is String && appId is String) {
           timeref?.cancel();
           await UserDbModel.createAliyunUser(json);
+          isClean = true;
           Get.back();
         }
       }
@@ -85,7 +91,9 @@ class _AliyunPageState extends State<AliyunPage> {
 
   @override
   void dispose() {
-    _webViewController.runJavaScript('localStorage.removeItem("token")');
+    if (isClean) {
+      _webViewController.runJavaScript('localStorage.removeItem("token")');
+    }
     super.dispose();
     timeref?.cancel();
   }

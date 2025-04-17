@@ -8,6 +8,7 @@ import 'package:pms/bindings/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/utils/export.dart';
+import 'package:string_normalizer/string_normalizer.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
@@ -155,7 +156,7 @@ class _TaskPageState extends State<TaskPage>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      media.name,
+                                      StringNormalizer.normalize(media.name),
                                       style: TextStyle(
                                         fontSize: 24.sp,
                                         overflow: TextOverflow.ellipsis,
@@ -217,7 +218,8 @@ class _TaskPageState extends State<TaskPage>
                                 onPressed: () {
                                   Tool.showConfirm(
                                     title: '删除'.tr,
-                                    content: '${'是否删除'.tr}（${media.name}）',
+                                    content:
+                                        '${'是否删除'.tr}（${StringNormalizer.normalize(media.name)}）',
                                     onConfirm: () async {
                                       await taskController.removeTask(task);
                                       list.refresh();

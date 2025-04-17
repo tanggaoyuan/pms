@@ -140,5 +140,7 @@ Map<String, String> enUS = {
   '计算缓存大小中...': 'Calculating cache size...',
   '清理缓存': 'Clear Cache',
   '导入中...': 'Importing...',
+  '当前资源正被加载,已跳过删除':
+      'The current resource is being loaded, and the deletion has been skipped.',
   ...comLang,
 };

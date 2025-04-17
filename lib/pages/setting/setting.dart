@@ -49,29 +49,28 @@ class SettingPage extends GetView<SettingController> {
               Wrap(
                 spacing: 10.w,
                 runSpacing: 10.w,
-                children:
-                    themes.asMap().entries.map((item) {
-                      var index = item.key;
-                      var theme = item.value;
-                      return GestureDetector(
-                        child: Opacity(
-                          opacity: index == controller.themeIndex ? 1 : 0.5,
-                          child: Container(
-                            width: 90.w,
-                            height: 90.w,
-                            decoration: BoxDecoration(
-                              color: theme.light.primaryColor,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(6.w),
-                              ),
-                            ),
+                children: themes.asMap().entries.map((item) {
+                  var index = item.key;
+                  var theme = item.value;
+                  return GestureDetector(
+                    child: Opacity(
+                      opacity: index == controller.themeIndex ? 1 : 0.5,
+                      child: Container(
+                        width: 90.w,
+                        height: 90.w,
+                        decoration: BoxDecoration(
+                          color: theme.light.primaryColor,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(6.w),
                           ),
                         ),
-                        onTap: () {
-                          controller.selectTheme(index);
-                        },
-                      );
-                    }).toList(),
+                      ),
+                    ),
+                    onTap: () {
+                      controller.selectTheme(index);
+                    },
+                  );
+                }).toList(),
               ),
               SizedBox(height: 30.w),
             ],
@@ -97,33 +96,31 @@ class SettingPage extends GetView<SettingController> {
               Wrap(
                 spacing: 10.w,
                 runSpacing: 10.w,
-                children:
-                    locales.asMap().entries.map((item) {
-                      var index = item.key;
-                      var locale = item.value;
-                      var bg =
-                          controller.isDarkMode ? Colors.black : Colors.white;
-                      var active = controller.localIndex == index;
-                      return GestureDetector(
-                        child: Opacity(
-                          opacity: active ? 1 : 0.5,
-                          child: Container(
-                            width: 90.w,
-                            height: 90.w,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(6.w),
-                              ),
-                              color: bg,
-                            ),
-                            child: Center(child: Text(locale.toString().tr)),
+                children: locales.asMap().entries.map((item) {
+                  var index = item.key;
+                  var locale = item.value;
+                  var bg = controller.isDarkMode ? Colors.black : Colors.white;
+                  var active = controller.localIndex == index;
+                  return GestureDetector(
+                    child: Opacity(
+                      opacity: active ? 1 : 0.5,
+                      child: Container(
+                        width: 90.w,
+                        height: 90.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(6.w),
                           ),
+                          color: bg,
                         ),
-                        onTap: () {
-                          controller.selectLocal(index);
-                        },
-                      );
-                    }).toList(),
+                        child: Center(child: Text(locale.toString().tr)),
+                      ),
+                    ),
+                    onTap: () {
+                      controller.selectLocal(index);
+                    },
+                  );
+                }).toList(),
               ),
               SizedBox(height: 30.w),
             ],
@@ -310,23 +307,6 @@ class SettingPage extends GetView<SettingController> {
             renderTimeMode(),
             SizedBox(height: 20.w),
             const CacheButtomComp(),
-            TextButton(
-              onPressed: () async {
-                // DbHelper.removeTable(MediaDbModel.tableName);
-
-                // var users = await UserDbModel.users();
-
-                // await users.last.remove();
-
-                // users.forEach((item) {
-                //   print(item.toMap());
-                // });
-
-                // AudioPlayerTest.to();
-                VideoPlayerTest.to();
-              },
-              child: Text('测试'),
-            ),
           ],
         ),
       ),

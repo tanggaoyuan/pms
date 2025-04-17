@@ -63,22 +63,19 @@ class TaskController extends GetxController {
     var isFormat = taskType == MediaTaskType.format;
 
     var tasks = isDownload ? downloads : (isUpload ? uploads : formats);
-    var isExist =
-        tasks.firstWhereOrNull((item) {
+    var isExist = tasks.firstWhereOrNull((item) {
           var info = mediaMaps[item.mediaId];
           if (info == null) {
             return false;
           }
-          Tool.log(['relationId', media.relationId, info.relationId]);
-          Tool.log(['platform', media.platform, info.platform]);
-          Tool.log(['type', media.type, info.type]);
-          Tool.log(['uploadAlbumId', item.uploadAlbumId, uploadAlbumId]);
           return media.relationId == info.relationId &&
               media.platform == info.platform &&
               media.type == info.type &&
               item.uploadAlbumId == uploadAlbumId;
         }) !=
         null;
+
+    Tool.log([isExist, taskType, media.local]);
 
     if (isExist) {
       return;
@@ -244,11 +241,13 @@ class TaskController extends GetxController {
 
             var ext = urlname.split('.').last;
 
-            var savePath = '$dirPath/${media.name.replaceAll('/', '_')}.$ext';
+            var basepath =
+                '$dirPath/${media.name.replaceAll(RegExp(r'[/.]'), '_')}';
+
+            var savePath = '$basepath.$ext';
 
             if (media.type == MediaTagType.video && isAudioUrl) {
-              savePath =
-                  '$dirPath/${media.name.replaceAll('/', '_')}_audio_track.$ext';
+              savePath = '${savePath}_audio_track.$ext';
             }
 
             var tempfile = File(savePath);
@@ -276,10 +275,9 @@ class TaskController extends GetxController {
 
             _downloadQue[task.id]!.add(chain.setRange(cachePosition));
 
-            var response =
-                await chain.onReceiveProgress((count, total) {
-                  onProgress(cachePosition + count, cachePosition + total);
-                }).getData();
+            var response = await chain.onReceiveProgress((count, total) {
+              onProgress(cachePosition + count, cachePosition + total);
+            }).getData();
 
             await Tool.saveAsset(
               response: response,
@@ -321,36 +319,27 @@ class TaskController extends GetxController {
               task.total = totals.fold(0, (a, b) => a + b);
             }
 
-            var sources =
-                media.type == MediaTagType.video
-                    ? [audioUrl, videoUrl]
-                    : [audioUrl];
+            var sources = media.type == MediaTagType.video
+                ? [audioUrl, videoUrl]
+                : [audioUrl];
 
-            List<Future> promises =
-                sources.asMap().entries.map((item) {
-                  var index = item.key;
-                  var url = item.value;
-                  return download(url, (loaded, total) {
-                    loadeds[index] = loaded;
-                    totals[index] = total;
-                    updateProgress();
-                  });
-                }).toList();
+            List<Future> promises = sources.asMap().entries.map((item) {
+              var index = item.key;
+              var url = item.value;
+              return download(url, (loaded, total) {
+                loadeds[index] = loaded;
+                totals[index] = total;
+                updateProgress();
+              });
+            }).toList();
 
             await Future.wait(promises);
 
-            var [album] = await AlbumDbModel.findByRelationIds(
-              ids: [MediaPlatformType.local.name],
-              type: media.type,
-            );
-            album.songIds.add(media.id);
-            await album.update();
             task.remove();
             downloads.remove(task);
 
             /// 如果下载的音频不是 常用格式 则进行转码 允许视频当音频
             if (media.type == MediaTagType.muisc &&
-                !Tool.isAudioFile(media.local) &&
                 !Tool.isAudioFile(media.local)) {
               createTask(media: media, taskType: MediaTaskType.format);
             }
@@ -375,9 +364,16 @@ class TaskController extends GetxController {
 
               var file = await cachefile.copy(savepath);
 
-              Tool.log([file.path, file.existsSync()]);
               media.local = file.path;
+
               await media.update();
+
+              var [album] = await AlbumDbModel.findByRelationIds(
+                ids: [MediaPlatformType.local.name],
+                type: media.type,
+              );
+              album.songIds.add(media.id);
+              await album.update();
             }
 
             var controller = Get.find<HomeController>();
@@ -449,11 +445,9 @@ class TaskController extends GetxController {
             );
 
             task.total = uploader.fileSize;
-            for (
-              var i = (task.loaded / uploader.fileSize).floor();
-              i < uploader.partUrls.length;
-              i++
-            ) {
+            for (var i = (task.loaded / uploader.fileSize).floor();
+                i < uploader.partUrls.length;
+                i++) {
               var partUrl = uploader.partUrls[i];
               var chunk = uploader.getPartChunk(i);
               var promise = AliyunApi.uploadPart(
@@ -462,7 +456,6 @@ class TaskController extends GetxController {
               );
               _uploadQue[task.id] = promise;
               await promise.onSendProgress((loaded, _) {
-                // TODO 无效？？？
                 task.loaded = i * uploader.chunkSize + loaded;
               });
               task.loaded = min(((i + 1) * uploader.chunkSize), task.total);
@@ -486,16 +479,16 @@ class TaskController extends GetxController {
 
           if (album.isNeteasePlatform) {
             var domains = await NeteaseApi.getUploadDomains().getData();
-            var file =
-                await NeteaseApi.uploadCheck(
-                  cookie: user.accessToken,
-                  filepath: media.local,
-                ).getData();
-            file =
-                await NeteaseApi.uploadCreate(
-                  cookie: user.accessToken,
-                  file: file,
-                ).getData();
+
+            var file = await NeteaseApi.uploadCheck(
+              cookie: user.accessToken,
+              filepath: media.local,
+            ).getData();
+
+            file = await NeteaseApi.uploadCreate(
+              cookie: user.accessToken,
+              file: file,
+            ).getData();
             task.total = file.fileSize;
             if (file.needUpload) {
               var promise = NeteaseApi.upload(
@@ -508,11 +501,10 @@ class TaskController extends GetxController {
                 task.loaded = loaded;
               });
             }
-            var songId =
-                await NeteaseApi.uploadFileSave(
-                  cookie: user.accessToken,
-                  file: file,
-                ).getData();
+            var songId = await NeteaseApi.uploadFileSave(
+              cookie: user.accessToken,
+              file: file,
+            ).getData();
 
             if (songId == 0) {
               throw '保存上传文件异常'.tr;
@@ -527,6 +519,7 @@ class TaskController extends GetxController {
             uploads.remove(task);
           }
         } catch (e) {
+          Tool.log(["error", e]);
           task.status = MediaTaskStatus.pause;
           await task.update();
         } finally {
@@ -605,26 +598,30 @@ class TaskController extends GetxController {
           },
         );
         _formatQue[task.id] = promise;
-        promise
-            .then((_) async {
-              var oldPath = media.local;
-              media.local = audioOutput;
-              var file = File(oldPath);
-              await media.update();
-              if (file.existsSync()) {
-                await file.delete(recursive: true);
-              }
-              await task.remove();
-              formats.remove(task);
-            })
-            .catchError((e) {
-              task.status = MediaTaskStatus.pause;
-              task.update();
-            })
-            .whenComplete(() {
-              _formatQue.remove(task.id);
-              _runFormatTask();
-            });
+        promise.then((_) async {
+          var oldPath = media.local;
+          media.local = audioOutput;
+          var file = File(oldPath);
+          await media.update();
+          if (file.existsSync()) {
+            await file.delete(recursive: true);
+          }
+          await task.remove();
+          formats.remove(task);
+
+          var [album] = await AlbumDbModel.findByRelationIds(
+            ids: [MediaPlatformType.local.name],
+            type: media.type,
+          );
+          album.songIds.add(media.id);
+          await album.update();
+        }).catchError((e) {
+          task.status = MediaTaskStatus.pause;
+          task.update();
+        }).whenComplete(() {
+          _formatQue.remove(task.id);
+          _runFormatTask();
+        });
       }
 
       if (media.isVideo) {
@@ -650,32 +647,35 @@ class TaskController extends GetxController {
           },
         );
         _formatQue[task.id] = promise;
-        promise
-            .then((_) async {
-              var oldPath = media.local;
-              var oldAudioTrack = media.audioTrack;
-              media.local = videoOutput;
-              media.audioTrack = '';
-              await media.update();
-              var file = File(oldPath);
-              if (file.existsSync()) {
-                await file.delete(recursive: true);
-              }
-              var audioFile = File(oldAudioTrack);
-              if (audioFile.existsSync()) {
-                await audioFile.delete(recursive: true);
-              }
-              await task.remove();
-              formats.remove(task);
-            })
-            .catchError((e) {
-              task.status = MediaTaskStatus.pause;
-              task.update();
-            })
-            .whenComplete(() {
-              _formatQue.remove(task.id);
-              _runFormatTask();
-            });
+        promise.then((_) async {
+          var oldPath = media.local;
+          var oldAudioTrack = media.audioTrack;
+          media.local = videoOutput;
+          media.audioTrack = '';
+          await media.update();
+          var file = File(oldPath);
+          if (file.existsSync()) {
+            await file.delete(recursive: true);
+          }
+          var audioFile = File(oldAudioTrack);
+          if (audioFile.existsSync()) {
+            await audioFile.delete(recursive: true);
+          }
+          await task.remove();
+          formats.remove(task);
+          var [album] = await AlbumDbModel.findByRelationIds(
+            ids: [MediaPlatformType.local.name],
+            type: media.type,
+          );
+          album.songIds.add(media.id);
+          await album.update();
+        }).catchError((e) {
+          task.status = MediaTaskStatus.pause;
+          task.update();
+        }).whenComplete(() {
+          _formatQue.remove(task.id);
+          _runFormatTask();
+        });
       }
     }
   }
