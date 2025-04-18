@@ -1,11 +1,15 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/utils/export.dart';
+import 'package:sqflite/sqflite.dart';
 
 class CacheButtomComp extends StatefulWidget {
   const CacheButtomComp({super.key});
@@ -43,6 +47,11 @@ class _CacheButtomCompState extends State<CacheButtomComp> {
             await CachedNetworkImageProvider.defaultCacheManager.emptyCache();
             var cache = await getApplicationCacheDirectory();
             await cache.delete(recursive: true);
+            String cachePath = await getDatabasesPath();
+            final hiveDir = Directory("$cachePath/hive");
+            if (hiveDir.existsSync()) {
+              hiveDir.deleteSync(recursive: true);
+            }
             EasyLoading.showToast('清理缓存成功'.tr);
             init();
           } catch (e) {

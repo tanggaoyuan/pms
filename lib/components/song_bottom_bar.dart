@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/components/export.dart';
+import 'package:pms/db/export.dart';
 import 'package:pms/pages/export.dart';
 import 'package:pms/utils/export.dart';
 import 'package:string_normalizer/string_normalizer.dart';
@@ -46,6 +48,7 @@ class _SongBottomBarState extends State<_SongBottomBar> {
   @override
   void initState() {
     super.initState();
+
     pageController = PageController(
       initialPage: topage(audioController.current.value),
     );
@@ -86,13 +89,20 @@ class _SongBottomBarState extends State<_SongBottomBar> {
   Widget build(BuildContext context) {
     return Obx(() {
       var theme = settingController.theme;
-      var song = audioController.currentSong!;
+      var song = audioController.currentSong;
 
-      var songs = [
-        audioController.songs.last,
-        ...audioController.songs,
-        audioController.songs.first,
-      ];
+      var songs = audioController.songs.isNotEmpty
+          ? [
+              audioController.songs.last,
+              ...audioController.songs,
+              audioController.songs.first,
+            ]
+          : [
+              MediaDbModel(
+                  name: "暂无播放数据".tr,
+                  platform: MediaPlatformType.local,
+                  type: MediaTagType.action)
+            ];
 
       return Container(
         width: double.infinity,
@@ -108,12 +118,12 @@ class _SongBottomBarState extends State<_SongBottomBar> {
         ),
         child: ObscureComp(
           background: ImgComp(
-            source: song.cover,
+            source: song?.cover ?? ImgCompIcons.mainCover,
             fit: BoxFit.cover,
-            cacheKey: song.cacheKey,
+            cacheKey: song?.cacheKey,
             width: double.infinity,
             radius: 10.w,
-            referer: song.extra.referer,
+            referer: song?.extra.referer,
           ),
           obscureColor: theme.scaffoldBackgroundColor.withValues(alpha: .6),
           child: Row(
@@ -209,6 +219,11 @@ class _SongBottomBarState extends State<_SongBottomBar> {
               ),
               IconButton(
                 onPressed: () {
+                  if (audioController.songs.isEmpty) {
+                    EasyLoading.showToast("暂无播放数据".tr);
+                    return;
+                  }
+
                   if (audioController.playing.value) {
                     audioController.player.pause();
                   } else {
@@ -225,7 +240,7 @@ class _SongBottomBarState extends State<_SongBottomBar> {
               IconButton(
                 onPressed: () {
                   Tool.showBottomSheet(
-                    SizedBox(height: 800.w, child: SongSheetComp()),
+                    SizedBox(height: 800.w, child: const SongSheetComp()),
                   );
                 },
                 icon: ImgComp(source: ImgCompIcons.bars, width: 35.w),

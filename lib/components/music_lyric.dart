@@ -142,15 +142,18 @@ class _MusicLyricCompState extends State<MusicLyricComp> {
               duration: const Duration(milliseconds: 300),
               curve: Curves.linear,
             );
-            setState(() {
+            if (mounted) {
               showRangeBlock = true;
-            });
-            positionLineTimer?.cancel();
-            positionLineTimer = Timer(const Duration(seconds: 2), () {
-              isShowPositionLine = false;
-              showRangeBlock = false;
               setState(() {});
-            });
+              positionLineTimer?.cancel();
+              positionLineTimer = Timer(const Duration(seconds: 2), () {
+                if (mounted) {
+                  isShowPositionLine = false;
+                  showRangeBlock = false;
+                  setState(() {});
+                }
+              });
+            }
           },
           child: ListView.builder(
             key: scrollKey,

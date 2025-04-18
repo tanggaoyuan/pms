@@ -347,7 +347,18 @@ class MusicModelController extends GetxController {
           album.songIds.removeAt(num);
         }
         await album.update();
+        if (audioController.albumId.value == album.id) {
+          if (song.id == audioController.currentSong?.id) {
+            await audioController.player.pause();
+          }
+          audioController.songs.removeWhere((item) {
+            return item.id == song.id;
+          });
+        }
       }
+
+      audioController.setPlayList(audioController.songs);
+
       EasyLoading.dismiss();
       EasyLoading.showToast('删除成功'.tr);
     } catch (e) {
@@ -589,8 +600,8 @@ class MusicModelController extends GetxController {
         maskType: EasyLoadingMaskType.black,
       );
       await loadAllList();
-      audioController.setPlayList(songs);
-      audioController.play(index, album.id);
+      await audioController.setPlayList(songs);
+      await audioController.play(index, album.id);
       EasyLoading.dismiss();
     } catch (e) {
       EasyLoading.dismiss();

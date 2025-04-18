@@ -88,12 +88,12 @@ class _HomeStatePage extends State<HomePage> with WidgetsBindingObserver {
             },
             icon: const FaIcon(FontAwesomeIcons.download),
           ),
-          IconButton(
-            onPressed: () {
-              YoutubePage.to();
-            },
-            icon: const FaIcon(FontAwesomeIcons.youtube),
-          ),
+          // IconButton(
+          //   onPressed: () {
+          //     YoutubePage.to();
+          //   },
+          //   icon: const FaIcon(FontAwesomeIcons.youtube),
+          // ),
         ],
       ),
       body: PageView(
@@ -123,13 +123,12 @@ class _HomeStatePage extends State<HomePage> with WidgetsBindingObserver {
             activePath = index;
           });
         },
-        items:
-            tabs.map((item) {
-              return BottomNavigationBarItem(
-                icon: item['icon'],
-                label: item['title'],
-              );
-            }).toList(),
+        items: tabs.map((item) {
+          return BottomNavigationBarItem(
+            icon: item['icon'],
+            label: item['title'],
+          );
+        }).toList(),
       ),
     );
   }

@@ -7,6 +7,7 @@ import 'package:pms/utils/export.dart';
 
 class SettingController extends GetxController {
   final List<ThemeConfig> themes = ThemeConfig.themes;
+  final storePromise = Hive.openBox<Map>("app_config");
 
   final List<Locale> locales = [
     const Locale('zh', 'CN'),
@@ -21,7 +22,7 @@ class SettingController extends GetxController {
   }
 
   init() async {
-    final store = await Hive.openBox<Map>('app_config');
+    final store = await storePromise;
     Map config = store.get('config') ?? {};
 
     if (config['locale'] is int) {
@@ -40,7 +41,6 @@ class SettingController extends GetxController {
     if (config['theme'] is int) {
       _themeIndex.value = config['theme'] as int;
     }
-    await store.close();
   }
 
   final _themeIndex = 0.obs;
@@ -86,30 +86,31 @@ class SettingController extends GetxController {
   void selectTheme(int index) async {
     _themeIndex.value = index;
     Get.changeTheme(theme);
-    final store = await Hive.openBox<Map>('app_config');
+    final store = await storePromise;
     Map config = store.get('config') ?? {};
     config['theme'] = index;
     store.put('config', config);
-    await store.close();
   }
 
   void selectLocal(int index) async {
     _localIndex.value = index;
     Get.updateLocale(locales[localIndex]);
-    final store = await Hive.openBox<Map>('app_config');
+    final store = await storePromise;
     Map config = store.get('config') ?? {};
     config['locale'] = index;
     store.put('config', config);
-    await store.close();
   }
 
   void toggleThemeMode() {
-    _themeMode.value = _themeMode.value == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    _themeMode.value =
+        _themeMode.value == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     _updateToastStyle();
     Get.changeTheme(theme);
   }
 
   _updateToastStyle() {
-    EasyLoading.instance.loadingStyle = themeMode == ThemeMode.dark ? EasyLoadingStyle.light : EasyLoadingStyle.dark;
+    EasyLoading.instance.loadingStyle = themeMode == ThemeMode.dark
+        ? EasyLoadingStyle.light
+        : EasyLoadingStyle.dark;
   }
 }

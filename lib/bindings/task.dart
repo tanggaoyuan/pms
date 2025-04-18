@@ -126,7 +126,7 @@ class TaskController extends GetxController {
         var user = uses.firstWhere((item) => item.relationId == key);
         await user.updateToken();
         AliyunApi.reportTask(
-          sliceNum: 3,
+          sliceNum: 2,
           driveId: user.extra.driveId,
           xDeviceId: user.extra.xDeviceId,
           token: user.accessToken,
@@ -148,7 +148,7 @@ class TaskController extends GetxController {
       var uses = await UserDbModel.findByPlatform(MediaPlatformType.aliyun);
       var user = uses.firstWhere((item) => item.relationId == userId);
       AliyunApi.reportTask(
-        sliceNum: 1,
+        sliceNum: 0,
         driveId: user.extra.driveId,
         xDeviceId: user.extra.xDeviceId,
         token: user.accessToken,
@@ -350,8 +350,8 @@ class TaskController extends GetxController {
               createTask(media: media, taskType: MediaTaskType.format);
             }
 
-            if (media.type == MediaTagType.muisc &&
-                Tool.isAudioFile(media.local)) {
+            if (Tool.isAudioFile(media.local) ||
+                Tool.isVideoFile(media.local)) {
               var assetpath = await Tool.getAppAssetsPath();
               var cachepath = await Tool.getAppCachePath();
               var cachefile = File(media.local);
@@ -519,7 +519,6 @@ class TaskController extends GetxController {
             uploads.remove(task);
           }
         } catch (e) {
-          Tool.log(["error", e]);
           task.status = MediaTaskStatus.pause;
           await task.update();
         } finally {
@@ -554,6 +553,8 @@ class TaskController extends GetxController {
 
       _formatQue[task.id] = null;
       task.status = MediaTaskStatus.pending;
+
+      var controller = Get.find<HomeController>();
 
       if (media.isAudio) {
         var index = media.local.lastIndexOf('.');
@@ -619,6 +620,7 @@ class TaskController extends GetxController {
           task.status = MediaTaskStatus.pause;
           task.update();
         }).whenComplete(() {
+          controller.initMuiceAlbums();
           _formatQue.remove(task.id);
           _runFormatTask();
         });
@@ -674,6 +676,7 @@ class TaskController extends GetxController {
           task.update();
         }).whenComplete(() {
           _formatQue.remove(task.id);
+          controller.initVideoAlbums();
           _runFormatTask();
         });
       }

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -10,7 +9,6 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:pms/bindings/audio.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/utils/export.dart';
 import 'package:webview_cookie_manager/webview_cookie_manager.dart';
@@ -87,11 +85,13 @@ class YoutubeVideoFormat {
       if (end >= contentLength) end = contentLength;
 
       var response = await dio.get<ResponseBody>(
-        effectiveUrl,
+        url,
         options: Options(
           headers: {
             "Range": 'bytes=$start-$end',
-            // TODO
+            "connection": 'keep-alive',
+            "origin": "https://m.youtube.com",
+            "referer": "https://m.youtube.com/",
           },
           responseType: ResponseType.stream,
         ),
@@ -126,7 +126,6 @@ class YoutubeVideoFormat {
     if (params['n'] == null) {
       return '';
     }
-    Tool.log(url);
     Uri uri = Uri.parse(url);
     Map<String, String> queryParams = Map<String, String>.from(
       uri.queryParameters,
@@ -154,6 +153,8 @@ class YoutubeVideoFormat {
   bool get isDash {
     return RegExp(r'\/manifest\/dash\/').hasMatch(url);
   }
+
+  
 
   static YoutubeVideoFormat fromMap(Map json) {
     return YoutubeVideoFormat(
@@ -342,6 +343,7 @@ class _YoutubePage extends State<YoutubePage> {
           }
         },
         onError: (error) {
+          Tool.log(["error", error]);
           passThrough.close();
         },
       );
@@ -357,175 +359,18 @@ class _YoutubePage extends State<YoutubePage> {
     super.initState();
 
     _webViewController = WebViewController();
-    _webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
-    _webViewController.loadRequest(Uri.parse('https://m.youtube.com'));
-    _webViewController.setUserAgent(
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/131.0.0.0',
-    );
-    _webViewController.setNavigationDelegate(
-      NavigationDelegate(
-        onProgress: (int progress) {
-          // Update loading bar.
-        },
-        onPageStarted: (String url) {},
-        onPageFinished: (String url) {
-          String jsCode = '''
-if (!window.fetchex) {
-  window.fetchex = window.fetch;
-
-  window.resonse_whitelist = [
-    'https://m.youtube.com/',
-    'https://www.youtube.com/',
-  ];
-
-  window.fetch = async function (...args) {
-    let requestInfo = {};
-    if (args[0] && args[0].url) {
-      try {
-        let info = args[0].clone();
-        let data = await info.text();
-        try {
-          data = JSON.parse(data);
-        } catch (error) {}
-        requestInfo = {
-          key: Date.now(),
-          data,
-          url: info.url,
-          method: info.method,
-          headers: info.headers,
-          href: location.href,
-        };
-        window.onFultterRequest.postMessage(JSON.stringify(requestInfo));
-      } catch (error) {
-        window.onFultterRequest.postMessage(
-          JSON.stringify({
-            url: args[0].url,
-            error: error.toString(),
-          })
-        );
-      }
-    }
-    let promise = window.fetchex(...args);
-    if (args[0] && args[0].url) {
-      let url = args[0].url;
-      var whitelist = window.resonse_whitelist;
-      if (
-        whitelist.some(function (item) {
-          return url.includes(item);
-        })
-      ) {
-        try {
-          let response = await promise;
-          let cloneResponse = response.clone();
-          let data = await cloneResponse.text();
-          try {
-            data = JSON.parse(data);
-          } catch (error) {}
-          window.onFultterResonse.postMessage(
-            JSON.stringify({
-              ...requestInfo,
-              responseData: data,
-            })
-          );
-        } catch (error) {
-          window.onFultterResonse.postMessage(
-            JSON.stringify({
-              url,
-              error: error.toString(),
-            })
-          );
-        }
-      }
-    }
-    return promise;
-  };
-}if (!window.fetchex) {
-  window.fetchex = window.fetch;
-
-  window.resonse_whitelist = [
-    'https://m.youtube.com/',
-    'https://www.youtube.com/',
-  ];
-
-  window.fetch = async function (...args) {
-    let requestInfo = {};
-    if (args[0] && args[0].url) {
-      try {
-        let info = args[0].clone();
-        let data = await info.text();
-        try {
-          data = JSON.parse(data);
-        } catch (error) {}
-        requestInfo = {
-          key: Date.now(),
-          data,
-          url: info.url,
-          method: info.method,
-          headers: info.headers,
-          href: location.href,
-        };
-        window.onFultterRequest.postMessage(JSON.stringify(requestInfo));
-      } catch (error) {
-        window.onFultterRequest.postMessage(
-          JSON.stringify({
-            url: args[0].url,
-            error: error.toString(),
-          })
-        );
-      }
-    }
-    let promise = window.fetchex(...args);
-    if (args[0] && args[0].url) {
-      let url = args[0].url;
-      var whitelist = window.resonse_whitelist;
-      if (
-        whitelist.some(function (item) {
-          return url.includes(item);
-        })
-      ) {
-        try {
-          let response = await promise;
-          let cloneResponse = response.clone();
-          let data = await cloneResponse.text();
-          try {
-            data = JSON.parse(data);
-          } catch (error) {}
-          window.onFultterResonse.postMessage(
-            JSON.stringify({
-              ...requestInfo,
-              responseData: data,
-            })
-          );
-        } catch (error) {
-          window.onFultterResonse.postMessage(
-            JSON.stringify({
-              url,
-              error: error.toString(),
-            })
-          );
-        }
-      }
-    }
-    return promise;
-  };
-}
-        ''';
-          _webViewController.runJavaScript(jsCode);
-        },
-        onHttpError: (HttpResponseError error) {},
-        onWebResourceError: (WebResourceError error) {},
-        onNavigationRequest: (NavigationRequest request) {
-          return NavigationDecision.navigate;
-        },
-      ),
-    );
 
     _webViewController.addJavaScriptChannel(
       'onFultterRequest',
       onMessageReceived: (JavaScriptMessage message) {
         try {
-          Map result = jsonDecode(message.message);
+          var result = jsonDecode(message.message);
+          if (result is String) {
+            result = jsonDecode(result);
+          }
+
           String url = result['url'];
+
           if (url.contains('/videoplayback?expire=')) {
             var href = Uri.parse(
               (result['href'] as String).replaceAll('"', ''),
@@ -554,7 +399,7 @@ if (!window.fetchex) {
             }
           }
         } catch (e) {
-          Tool.log(e);
+          Tool.log(["onFultterRequest", e]);
         }
       },
     );
@@ -564,6 +409,9 @@ if (!window.fetchex) {
       onMessageReceived: (JavaScriptMessage message) {
         try {
           var result = jsonDecode(message.message);
+          if (result is String) {
+            result = jsonDecode(result);
+          }
           var url = result['url'];
           var responseData = result['responseData'];
           if (responseData is Map &&
@@ -573,9 +421,103 @@ if (!window.fetchex) {
             responseMap[info.videoId] = info;
           }
         } catch (e) {
-          Tool.log(e);
+          Tool.log(["onFultterResonse", e]);
         }
       },
+    );
+
+    _webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
+    _webViewController.setUserAgent(
+        "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36 Edg/135.0.0.0");
+    _webViewController.loadRequest(Uri.parse('https://m.youtube.com'));
+    _webViewController.setNavigationDelegate(
+      NavigationDelegate(
+        onProgress: (int progress) {
+          // Update loading bar.
+        },
+        onPageStarted: (String url) {},
+        onPageFinished: (String url) {
+          String jsCode = '''window.resonse_whitelist = [
+  "https://m.youtube.com/",
+  "https://www.youtube.com/",
+];
+
+if (!window.fetchex) {
+  window.fetchex = window.fetch;
+}
+
+window.fetch = async function (...args) {
+  let requestInfo = {};
+  if (args[0] && args[0].url) {
+    try {
+      let info = args[0].clone();
+      let data = await info.text();
+      try {
+        data = JSON.parse(data);
+      } catch (error) {}
+
+      requestInfo = {
+        key: Date.now(),
+        data,
+        url: info.url,
+        method: info.method,
+        headers: info.headers,
+        href: location.href,
+      };
+      window.onFultterRequest.postMessage(JSON.stringify(requestInfo));
+    } catch (error) {
+      window.onFultterRequest.postMessage(
+        JSON.stringify({
+          url: args[0].url,
+          error: error.toString(),
+        })
+      );
+    }
+  }
+  let promise = window.fetchex(...args);
+  if (args[0] && args[0].url) {
+    let url = args[0].url;
+    var whitelist = window.resonse_whitelist;
+    if (
+      whitelist.some(function (item) {
+        return url.includes(item);
+      })
+    ) {
+      try {
+        let response = await promise;
+        let cloneResponse = response.clone();
+        let data = await cloneResponse.text();
+        try {
+          data = JSON.parse(data);
+        } catch (error) {}
+        window.onFultterResonse.postMessage(
+          JSON.stringify({
+            ...requestInfo,
+            responseData: data,
+          })
+        );
+      } catch (error) {
+        window.onFultterResonse.postMessage(
+          JSON.stringify({
+            url,
+            error: error.toString(),
+          })
+        );
+      }
+    }
+  }
+  return promise;
+};
+        ''';
+
+          _webViewController.runJavaScript(jsCode);
+        },
+        onHttpError: (HttpResponseError error) {},
+        onWebResourceError: (WebResourceError error) {},
+        onNavigationRequest: (NavigationRequest request) {
+          return NavigationDecision.navigate;
+        },
+      ),
     );
   }
 
@@ -625,11 +567,8 @@ if (!window.fetchex) {
                       var videoId = uri.queryParameters['v'];
 
                       var info = responseMap[videoId];
-                      var [videoUrl, audioUrl] = downloads[videoId] ?? ['', ''];
 
-                      if (info == null ||
-                          videoUrl.isEmpty ||
-                          audioUrl.isEmpty) {
+                      if (info == null) {
                         EasyLoading.dismiss();
                         EasyLoading.showToast('未检测出下载链接'.tr);
                         return;
@@ -638,14 +577,10 @@ if (!window.fetchex) {
                       EasyLoading.showToast('开始下载'.tr);
 
                       var videoFormat = info.formats.firstWhere(
-                        (item) =>
-                            item.isVideo &&
-                            videoUrl.contains('itag=${item.itag}'),
+                        (item) => item.isVideo,
                       );
                       var audioFormat = info.formats.firstWhere(
-                        (item) =>
-                            item.isAudio &&
-                            audioUrl.contains('itag=${item.itag}'),
+                        (item) => item.isAudio,
                       );
 
                       var cachepath = await Tool.getAppCachePath();
@@ -662,8 +597,10 @@ if (!window.fetchex) {
                         await videoFile.delete(recursive: true);
                       }
 
+                      print("videoFormat.url ${videoFormat.url}");
+
                       var videoStream = download(
-                        url: videoUrl,
+                        url: videoFormat.url,
                         contentLength: videoFormat.contentLength,
                         onProgress: (loaded, total) {
                           var progress = loaded / total;
@@ -700,8 +637,10 @@ if (!window.fetchex) {
                         await audioFile.delete(recursive: true);
                       }
 
+                      print("audioFormat.url ${audioFormat.url}");
+
                       var audioStream = download(
-                        url: audioUrl,
+                        url: audioFormat.url,
                         contentLength: audioFormat.contentLength,
                         onProgress: (loaded, total) {
                           var progress = loaded / total;

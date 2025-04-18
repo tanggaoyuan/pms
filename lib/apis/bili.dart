@@ -7,44 +7,43 @@ import 'package:pms/utils/dash_to_map.dart';
 import 'package:pms/utils/export.dart';
 import 'package:pointycastle/export.dart';
 
-var _chain =
-    DioChain(
-      headers: {
-        "Referer": "https://www.bilibili.com/",
-        "origin": "https://www.bilibili.com",
-        "sec-ch-ua":
-            '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Windows"',
-        "sec-fetch-dest": 'empty',
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-site",
-      },
-      interceptor: (chain) async {
-        var cookieMap = Tool.parseCookie(chain.options.headers['cookie']);
-        var csrfToken = cookieMap['bili_jct'] ?? '';
-        chain.query({"csrf": csrfToken});
-        chain.send({"csrf": csrfToken});
-        var extra = chain.extra;
-        if (extra['imgKey'] is String && extra['subKey'] is String) {
-          var wbiParams = BiliApi.encodeWbi(
-            chain.options.queryParameters,
-            extra['imgKey'],
-            extra['subKey'],
-          );
-          chain.query(wbiParams);
-        }
-        return (Response response) async {
-          var data = response.data;
+var _chain = DioChain(
+  headers: {
+    "Referer": "https://www.bilibili.com/",
+    "origin": "https://www.bilibili.com",
+    "sec-ch-ua":
+        '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": 'empty',
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-site",
+  },
+  interceptor: (chain) async {
+    var cookieMap = Tool.parseCookie(chain.options.headers['cookie']);
+    var csrfToken = cookieMap['bili_jct'] ?? '';
+    chain.query({"csrf": csrfToken});
+    chain.send({"csrf": csrfToken});
+    var extra = chain.extra;
+    if (extra['imgKey'] is String && extra['subKey'] is String) {
+      var wbiParams = BiliApi.encodeWbi(
+        chain.options.queryParameters,
+        extra['imgKey'],
+        extra['subKey'],
+      );
+      chain.query(wbiParams);
+    }
+    return (Response response) async {
+      var data = response.data;
 
-          if (data is Map && data['code'] == -101) {
-            throw response;
-          }
+      if (data is Map && data['code'] == -101) {
+        throw response;
+      }
 
-          return response;
-        };
-      },
-    ).setUserAgent();
+      return response;
+    };
+  },
+).setUserAgent();
 
 class BiliApi {
   static DioChainResponse<int> getRefreshTime(String cookie) {
@@ -132,8 +131,7 @@ class BiliApi {
         'https://passport.bilibili.com/x/passport-login/web/confirm/refresh';
     return _chain
         .post<Map>(url)
-        .query({'refresh_token': oldRefreshToken})
-        .setCookie(newCookie);
+        .query({'refresh_token': oldRefreshToken}).setCookie(newCookie);
   }
 
   static encodeWbi(Map<String, dynamic> params, String imgKey, String subKey) {
@@ -204,8 +202,7 @@ class BiliApi {
       52,
     ];
 
-    var secret =
-        imgKey.split('/').last.split('.').first +
+    var secret = imgKey.split('/').last.split('.').first +
         subKey.split('/').last.split('.').first;
 
     StringBuffer buffer = StringBuffer();
@@ -225,9 +222,9 @@ class BiliApi {
     var query = queryList
         .map((key) {
           String value = data[key].toString().replaceAll(
-            RegExp(r"[!\'()*]"),
-            '',
-          );
+                RegExp(r"[!\'()*]"),
+                '',
+              );
           return '${Uri.encodeComponent(key)}=${Uri.encodeComponent(value)}';
         })
         .toList()
@@ -249,18 +246,18 @@ class BiliApi {
     final hmac = Hmac(sha256, keyBytes);
     final digest = hmac.convert(messageBytes);
 
-    final hexSign =
-        digest.bytes
-            .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-            .join();
+    final hexSign = digest.bytes
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
 
     var url =
         'https://api.bilibili.com/bapis/bilibili.api.ticket.v1.Ticket/GenWebTicket';
 
-    return _chain
-        .post<Map>(url)
-        .query({"key_id": 'ec02', "hexsign": hexSign, 'context[ts]': ts})
-        .format(BliTicket.fromResponse);
+    return _chain.post<Map>(url).query({
+      "key_id": 'ec02',
+      "hexsign": hexSign,
+      'context[ts]': ts
+    }).format(BliTicket.fromResponse);
   }
 
   static DioChainResponse<BliUser> getUserInfo(String cookie) {
@@ -370,7 +367,7 @@ class BiliApi {
         .query({"bvid": bvid, "cid": cid, "qn": 112, "fnval": 16})
         .setExtra({"imgKey": imgKey, "subKey": subKey})
         .setCookie(cookie)
-        .setLocalCache(120 * 60 * 1000)
+        .setLocalCache(10 * 60 * 1000)
         .format(BliPlayInfo.fromResponse);
   }
 
@@ -387,7 +384,7 @@ class BiliApi {
         .query({"bvid": bvid, "cid": cid, "qn": 112, "fnval": 16})
         .setExtra({"imgKey": imgKey, "subKey": subKey})
         .setCookie(cookie)
-        .setLocalCache(120 * 60 * 1000)
+        .setLocalCache(10 * 60 * 1000)
         .format((response) {
           return DashHelper.formBili(response.data["data"]["dash"]);
         });
@@ -411,8 +408,7 @@ class BiliApi {
   }) {
     return _chain
         .getStream(url)
-        .setHeaders({"Connection": "keep-alive"})
-        .setReferer(referer);
+        .setHeaders({"Connection": "keep-alive"}).setReferer(referer);
   }
 
   static deleteFavVideo({
@@ -433,8 +429,7 @@ class BiliApi {
     var cookieMap = Tool.parseCookie(cookie);
     return _chain
         .post(url)
-        .send({'biliCSRF': cookieMap['bili_jct']})
-        .setCookie(cookie);
+        .send({'biliCSRF': cookieMap['bili_jct']}).setCookie(cookie);
   }
 }
 
@@ -477,16 +472,14 @@ class BliPlayInfo {
       duration: map.getInt(['timelength']),
       formatNames: map.getList<String>(['accept_description']),
       qualitys: map.getList<int>(['accept_quality']),
-      videos:
-          map
-              .getList(['dash', 'video'])
-              .map((item) => BliMediaInfo.fromMap(item))
-              .toList(),
-      audios:
-          map
-              .getList(['dash', 'audio'])
-              .map((item) => BliMediaInfo.fromMap(item))
-              .toList(),
+      videos: map
+          .getList(['dash', 'video'])
+          .map((item) => BliMediaInfo.fromMap(item))
+          .toList(),
+      audios: map
+          .getList(['dash', 'audio'])
+          .map((item) => BliMediaInfo.fromMap(item))
+          .toList(),
     );
   }
 }

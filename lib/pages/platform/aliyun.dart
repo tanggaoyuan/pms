@@ -76,6 +76,10 @@ class _AliyunPageState extends State<AliyunPage> {
           json = jsonDecode(json);
         }
 
+        if (json == "null") {
+          return;
+        }
+
         var refreshToken = json['refresh_token'];
         var appId = json['app_id'];
 

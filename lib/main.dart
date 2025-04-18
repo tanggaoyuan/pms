@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -16,12 +17,8 @@ import 'package:switch_orientation/switch_orientation.dart';
 
 initConfig() async {
   String cachePath = await getDatabasesPath();
-  Hive.init(cachePath);
+  Hive.init("$cachePath/hive");
   EasyLoading.instance.indicatorType = EasyLoadingIndicatorType.squareCircle;
-  // CachedNetworkImageProvider.defaultCacheManager = CacheManager(Config(
-  //   'pms_image_cache',
-  //   repo: JsonCacheInfoRepository(path: '$cachePath/pms_image_cache.json'),
-  // ));
   SwitchOrientation.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     // DeviceOrientation.portraitDown,
@@ -31,7 +28,8 @@ initConfig() async {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await initConfig();
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
@@ -41,8 +39,21 @@ void main() async {
   MediaPlayerPlugin.restart();
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<StatefulWidget> createState() {
+    return _MyAppState();
+  }
+}
+
+class _MyAppState extends State {
+  @override
+  void initState() {
+    super.initState();
+    FlutterNativeSplash.remove();
+  }
 
   @override
   Widget build(BuildContext context) {

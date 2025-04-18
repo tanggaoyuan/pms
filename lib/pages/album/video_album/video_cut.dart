@@ -48,10 +48,10 @@ class _VideoCutPageState extends State<VideoCutPage> {
 
   late bool isPlaying = false;
   late int position = 0;
-  late String cover;
-  late String name;
-  late String albumName;
-  late String art;
+  late String cover = "";
+  late String name = "";
+  late String albumName = "";
+  late String art = "";
 
   init() async {
     await player.init();

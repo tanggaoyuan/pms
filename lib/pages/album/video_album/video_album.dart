@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -151,6 +152,7 @@ class VideoAlbumPage extends GetView<VideoModelController> {
       var duration = controller.duration;
       var buffered = controller.buffered;
       var isNone = controller.isNone;
+      var videos = controller.videos;
 
       Widget renderCover() {
         return SafeArea(
@@ -192,6 +194,11 @@ class VideoAlbumPage extends GetView<VideoModelController> {
                     ),
                     IconButton(
                       onPressed: () async {
+                        if (videos.isEmpty) {
+                          EasyLoading.showToast("暂无播放数据");
+                          return;
+                        }
+
                         await controller.setPlayIndex(0);
                         await controller.play();
                       },
@@ -411,7 +418,7 @@ class VideoAlbumPage extends GetView<VideoModelController> {
                 width: double.infinity,
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
-                  child: playIndex.value >= 0 && isNone
+                  child: playIndex.value >= 0 && isNone && videos.isNotEmpty
                       ? renderVideo()
                       : renderCover(),
                 ),

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:pms/apis/export.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/db/export.dart';
+import 'package:string_normalizer/string_normalizer.dart';
 
 class SongSheetComp extends StatefulWidget {
   final Function(NetLrc lyric)? onLyricChange;
@@ -25,6 +26,7 @@ class _SongSheetCompState extends State<SongSheetComp>
   late List<NetSong> lyrics = [];
   late String keywork = '';
   late Worker _worker;
+  var isLoading = false;
 
   @override
   void initState() {
@@ -61,12 +63,11 @@ class _SongSheetCompState extends State<SongSheetComp>
 
   searchLyric() async {
     // var [user] = await UserDbModel.findByPlatform(MediaPlatformType.netease);
-    var response =
-        await NeteaseApi.search(
-          keyword: keywork,
-          // cookie: user.accessToken,
-          limit: 20,
-        ).setLocalCache(24 * 60 * 60 * 1000).getData();
+    var response = await NeteaseApi.search(
+      keyword: keywork,
+      // cookie: user.accessToken,
+      limit: 20,
+    ).setLocalCache(24 * 60 * 60 * 1000).getData();
     setState(() {
       lyrics = response.songs;
     });
@@ -118,15 +119,14 @@ class _SongSheetCompState extends State<SongSheetComp>
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 24.w),
-                        color:
-                            current == index
-                                ? theme.primaryColor.withValues(alpha: .05)
-                                : null,
+                        color: current == index
+                            ? theme.primaryColor.withValues(alpha: .05)
+                            : null,
                         child: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                song.name,
+                                StringNormalizer.normalize(song.name),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(fontSize: 28.sp),
@@ -134,26 +134,40 @@ class _SongSheetCompState extends State<SongSheetComp>
                             ),
                             SizedBox(width: 20.w),
                             IconButton(
-                              onPressed: () {
-                                controller.songs.removeAt(index);
-
-                                if (songs.isEmpty) {
-                                  return;
-                                }
-
-                                if (current == index) {
-                                  if (songs.length - 1 > index) {
-                                    controller.play(index);
-                                  } else {
-                                    controller.play(songs.length - 1);
-                                  }
-                                  return;
-                                }
-
-                                if (current > index) {
-                                  controller.current.value--;
-                                }
-                              },
+                              onPressed: isLoading
+                                  ? null
+                                  : () async {
+                                      try {
+                                        setState(() {
+                                          isLoading = true;
+                                        });
+                                        controller.songs.removeAt(index);
+                                        if (songs.isEmpty) {
+                                          controller.current.value = -1;
+                                          await controller.player.pause();
+                                        } else if (current == index) {
+                                          if (songs.length - 1 > index) {
+                                            await controller.play(index);
+                                          } else {
+                                            await controller
+                                                .play(songs.length - 1);
+                                          }
+                                        } else {
+                                          if (current > index) {
+                                            controller.current.value--;
+                                          }
+                                        }
+                                        await controller
+                                            .setPlayList(controller.songs);
+                                        setState(() {
+                                          isLoading = false;
+                                        });
+                                      } catch (e) {
+                                        setState(() {
+                                          isLoading = false;
+                                        });
+                                      }
+                                    },
                               icon: Icon(
                                 Icons.close,
                                 size: 32.sp,
@@ -242,10 +256,9 @@ class _SongSheetCompState extends State<SongSheetComp>
                                   status: '设置歌词中...'.tr,
                                   maskType: EasyLoadingMaskType.black,
                                 );
-                                var response =
-                                    await NeteaseApi.getLyric(
-                                      song.id,
-                                    ).setLocalCache(double.infinity).getData();
+                                var response = await NeteaseApi.getLyric(
+                                  song.id,
+                                ).setLocalCache(double.infinity).getData();
                                 if (response.mainLrc.isEmpty) {
                                   EasyLoading.dismiss();
                                   EasyLoading.showToast('歌词不存在'.tr);

@@ -174,7 +174,7 @@ class MediaDbModel {
     }
 
     // dash 播放
-    if (isBiliPlatform && !(Platform.isIOS && isAudio)) {
+    if (isBiliPlatform) {
       await user.updateToken();
       var [info] = await BiliApi.getVideoSampleInfo(
         bvid: relationId,

@@ -1,5 +1,6 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -146,7 +147,7 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
 
       return Scaffold(
         body: ObscureComp(
-          obscureColor: Colors.black.withValues(alpha: .2),
+          obscureColor: Colors.black.withValues(alpha: .1),
           background: ImgComp(
             source: currentSong.cover,
             width: Get.width,
@@ -232,6 +233,11 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
                     ),
                     IconButton(
                       onPressed: () {
+                        if (audioController.songs.isEmpty) {
+                          EasyLoading.showToast("暂无播放数据");
+                          return;
+                        }
+
                         if (audioController.playing.value) {
                           audioController.player.pause();
                         } else {
@@ -259,7 +265,7 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
                     IconButton(
                       onPressed: () {
                         Tool.showBottomSheet(
-                          SizedBox(height: 800.w, child: SongSheetComp()),
+                          SizedBox(height: 800.w, child: const SongSheetComp()),
                         );
                       },
                       icon: ImgComp(
@@ -272,7 +278,7 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
                 ),
                 Material(
                   color: Colors.transparent, // 保持背景透明
-                  shape: RoundedRectangleBorder(
+                  shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),

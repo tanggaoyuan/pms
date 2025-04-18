@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:media_player_plugin/media_audio_player.dart';
@@ -30,22 +31,21 @@ class AudioController extends GetxController {
   var enableHeadsetMode = false.obs;
   var time = 0.obs;
 
+  final storePromise = Hive.openBox('media');
+
   init() async {
     await player.init();
-    final store = await Hive.openBox('media');
+
+    final store = await storePromise;
     List list = store.get("songs") ?? [];
 
     songs.value = _temps = list.map((item) {
       return MediaDbModel.fromMap(item);
     }).toList();
-    current.value = store.get("current") ?? 0;
 
     var playModeIndex = store.get("playModeIndex") ?? 0;
 
     playMode.value = PlayMode.values[playModeIndex];
-
-    await store.close();
-    await player.enablePlayback();
 
     player.registerPlayBackEvent(
       onPlayBackPrevious: prev,
@@ -75,7 +75,8 @@ class AudioController extends GetxController {
     );
 
     if (songs.isNotEmpty) {
-      await play(current.value);
+      var index = store.get("current") ?? 0;
+      await play(index);
       await player.pause();
     }
 
@@ -100,23 +101,26 @@ class AudioController extends GetxController {
   }
 
   MediaDbModel? get currentSong {
-    if (songs.isEmpty) {
-      return null;
+    if (songs.isEmpty ||
+        current.value == -1 ||
+        songs.length - 1 < current.value) {
+      return MediaDbModel(
+        name: "暂无播放数据".tr,
+        albumName: "未知",
+        platform: MediaPlatformType.local,
+        type: MediaTagType.action,
+      );
     }
     return songs[current.value];
   }
 
   play(int index, [int? albumId]) async {
-    current.value = index;
-
     if (albumId != null) {
       this.albumId.value = albumId;
     }
 
     var song = songs[index];
     var urls = await song.getPlayUrl();
-
-    print("urls ${urls}");
 
     var url = urls.first.isNotEmpty ? urls.first : urls.last;
 
@@ -149,13 +153,18 @@ class AudioController extends GetxController {
     );
     await player.prepare();
     await player.play();
+    current.value = index;
 
-    final store = await Hive.openBox('media');
+    final store = await storePromise;
     await store.put("current", index);
-    await store.close();
   }
 
   next() {
+    if (songs.isEmpty) {
+      EasyLoading.showToast("暂无播放数据".tr);
+      return;
+    }
+
     if (current.value == songs.length - 1) {
       play(0);
     } else {
@@ -164,6 +173,10 @@ class AudioController extends GetxController {
   }
 
   prev() {
+    if (songs.isEmpty) {
+      EasyLoading.showToast("暂无播放数据".tr);
+      return;
+    }
     if (current.value == 0) {
       play(songs.length - 1);
     } else {
@@ -194,10 +207,9 @@ class AudioController extends GetxController {
   }
 
   setPlayList(List<MediaDbModel> songs) async {
+    var store = await storePromise;
     this.songs.value = _temps = [...songs];
-    final store = await Hive.openBox('media');
     store.put("songs", this.songs.map((item) => item.toMap()).toList());
-    await store.close();
   }
 
   togglePlayMode() async {
@@ -221,9 +233,8 @@ class AudioController extends GetxController {
 
     current.value = songs.indexOf(song);
 
-    final store = await Hive.openBox('media');
+    final store = await storePromise;
     store.put("playModeIndex", PlayMode.values.indexOf(playMode.value));
-    await store.close();
   }
 
   toggleTimeMode() {

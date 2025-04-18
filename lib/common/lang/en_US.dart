@@ -142,5 +142,6 @@ Map<String, String> enUS = {
   '导入中...': 'Importing...',
   '当前资源正被加载,已跳过删除':
       'The current resource is being loaded, and the deletion has been skipped.',
+  '暂无播放数据': 'There is no playback data yet',
   ...comLang,
 };

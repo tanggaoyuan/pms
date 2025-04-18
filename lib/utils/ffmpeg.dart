@@ -46,7 +46,8 @@ class FfmpegTool {
     double? endTime,
   }) async {
     var info = await FFprobeKit.getMediaInformation(input);
-    double totalDuration = double.parse(info.getMediaInformation()?.getDuration() ?? '0');
+    double totalDuration =
+        double.parse(info.getMediaInformation()?.getDuration() ?? '0');
     var off = onStatistics((stat) {
       double currentTime = stat.getTime() / 1000;
       int progress = ((currentTime / totalDuration) * 100).round();
@@ -98,7 +99,8 @@ class FfmpegTool {
     double? endTime,
   }) async {
     var info = await FFprobeKit.getMediaInformation(input);
-    double totalDuration = double.parse(info.getMediaInformation()?.getDuration() ?? '');
+    double totalDuration =
+        double.parse(info.getMediaInformation()?.getDuration() ?? '');
     var off = onStatistics((stat) {
       double currentTime = stat.getTime() / 1000;
       int progress = ((currentTime / totalDuration) * 100).round();
@@ -133,31 +135,44 @@ class FfmpegTool {
 
   static Future merge({
     required String videoInput,
-    required String audioInput,
+    String? audioInput, // 改为可选
     required String output,
     required void Function(int progress, double duration) onProgress,
   }) async {
     var info = await FFprobeKit.getMediaInformation(videoInput);
+    double totalDuration =
+        double.parse(info.getMediaInformation()?.getDuration() ?? '0.0');
 
-    double totalDuration = double.parse(info.getMediaInformation()?.getDuration() ?? '0.0');
     var off = onStatistics((stat) {
       double currentTime = stat.getTime() / 1000;
-      int progress = totalDuration == 0 ? 0 : ((currentTime / totalDuration) * 100).round();
+      int progress = totalDuration == 0
+          ? 0
+          : ((currentTime / totalDuration) * 100).round();
       onProgress(progress, totalDuration);
     });
+
     try {
-      String command = '-i "$videoInput" -i "$audioInput" -c:v copy -c:a aac -strict experimental "$output"';
+      // 构建命令
+      String command;
+      if (audioInput != null && audioInput.isNotEmpty) {
+        // 有音频：合成视频+音频
+        command =
+            '-i "$videoInput" -i "$audioInput" -c:v copy -c:a aac -strict experimental "$output"';
+      } else {
+        // 没音频：仅处理视频（保留原视频轨道）
+        command = '-i "$videoInput" -c:v copy "$output"';
+      }
+
       var session = await FFmpegKit.execute(command);
       var returnCode = await session.getReturnCode();
       off();
+
       if (returnCode!.isValueSuccess()) {
         return returnCode.getValue();
       }
+
       var logs = await session.getAllLogs();
-      String message = '';
-      for (var log in logs) {
-        message += log.getMessage();
-      }
+      String message = logs.map((e) => e.getMessage()).join();
       return Future.error(message);
     } catch (e) {
       off();

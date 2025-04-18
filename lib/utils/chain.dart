@@ -57,7 +57,11 @@ class DioChainCache<T> {
     await store.close();
   }
 
-  static setLocalCache<T>({required String tag, required String key, required Response<T> response, required double time}) async {
+  static setLocalCache<T>(
+      {required String tag,
+      required String key,
+      required Response<T> response,
+      required double time}) async {
     final store = await Hive.openBox<Map>(Uri.encodeComponent(tag));
     if (time > 0 && time != double.infinity) {
       var now = DateTime.now();
@@ -65,11 +69,15 @@ class DioChainCache<T> {
       time = now.millisecondsSinceEpoch.ceilToDouble();
       Tool.log(['设置本地缓存', time, now.toString()]);
     }
-    await store.put(key, {"expire": time == double.infinity ? null : time, "response": fromResponse(response)});
+    await store.put(key, {
+      "expire": time == double.infinity ? null : time,
+      "response": fromResponse(response)
+    });
     await store.close();
   }
 
-  static Future<DioChainCache<T>?> getLocalCache<T>(String tag, String key) async {
+  static Future<DioChainCache<T>?> getLocalCache<T>(
+      String tag, String key) async {
     final store = await Hive.openBox<Map>(Uri.encodeComponent(tag));
 
     var cache = store.get(key);
@@ -183,14 +191,18 @@ class DioChainResponse<T> implements Future<Response<T>> {
   DioChainResponse({
     required this.url,
     required this.options,
-    Future<Future<Response> Function(Response response)?> Function(DioChainResponse chain)? interceptor,
+    Future<Future<Response> Function(Response response)?> Function(
+            DioChainResponse chain)?
+        interceptor,
   }) {
     _cancelToken = CancelToken();
 
     _promise = Future<Response<T>>(() async {
       try {
         String key = '';
-        String tag = url.startsWith(RegExp(r'http://|https://')) ? url : '${options.baseUrl}$url';
+        String tag = url.startsWith(RegExp(r'http://|https://'))
+            ? url
+            : '${options.baseUrl}$url';
 
         var cacheType = _config['cacheType'] as String?;
         var cacheTime = _config['cacheTime'] as double;
@@ -222,7 +234,8 @@ class DioChainResponse<T> implements Future<Response<T>> {
           }
         }
 
-        options.baseUrl = url.startsWith(RegExp(r'http://|https://')) ? '' : options.baseUrl;
+        options.baseUrl =
+            url.startsWith(RegExp(r'http://|https://')) ? '' : options.baseUrl;
         var dio = Dio(options);
 
         Future<Response> Function(Response response)? handleResponse;
@@ -233,7 +246,8 @@ class DioChainResponse<T> implements Future<Response<T>> {
 
         Object? dataTemp = body;
 
-        var data = dataTemp is Map ? dataTemp.cast<String, dynamic>() : dataTemp;
+        var data =
+            dataTemp is Map ? dataTemp.cast<String, dynamic>() : dataTemp;
 
         var request = dio.request<T>(
           url,
@@ -263,7 +277,16 @@ class DioChainResponse<T> implements Future<Response<T>> {
           });
         }
 
-        logger.i(['请求数据', key, options.method, url, options.contentType, options.headers, data is List<int> ? data.toString() : data, options.queryParameters]);
+        logger.i([
+          '请求数据',
+          key,
+          options.method,
+          url,
+          options.contentType,
+          options.headers,
+          data is List<int> ? data.toString() : data,
+          options.queryParameters
+        ]);
         var response = await request;
 
         if (cacheType == 'memory' && key.isNotEmpty && cacheTime > 0) {
@@ -294,7 +317,15 @@ class DioChainResponse<T> implements Future<Response<T>> {
         return response;
       } catch (e) {
         if (e is DioException) {
-          Tool.log(['请求异常', url, options.method, e, e.response?.statusCode, e.response?.statusMessage, e.response?.data]);
+          Tool.log([
+            '请求异常',
+            url,
+            options.method,
+            e,
+            e.response?.statusCode,
+            e.response?.statusMessage,
+            e.response?.data
+          ]);
         } else {
           Tool.log(['请求异常', url, options.method, e]);
         }
@@ -333,12 +364,14 @@ class DioChainResponse<T> implements Future<Response<T>> {
     return md5Digest.toString();
   }
 
-  DioChainResponse<T> onReceiveProgress(void Function(int count, int total) callback) {
+  DioChainResponse<T> onReceiveProgress(
+      void Function(int count, int total) callback) {
     _onReceiveProgressvoids.add(callback);
     return this;
   }
 
-  DioChainResponse<T> onSendProgress(void Function(int count, int total) callback) {
+  DioChainResponse<T> onSendProgress(
+      void Function(int count, int total) callback) {
     _onSendProgressvoids.add(callback);
     return this;
   }
@@ -417,7 +450,8 @@ class DioChainResponse<T> implements Future<Response<T>> {
   }
 
   bool get isFormUrlencoded {
-    return options.headers['content-type'] == 'application/x-www-form-urlencoded';
+    return options.headers['content-type'] ==
+        'application/x-www-form-urlencoded';
   }
 
   bool get isFormData {
@@ -432,7 +466,8 @@ class DioChainResponse<T> implements Future<Response<T>> {
     return setHeaders({'Range': 'bytes=$start-${end ?? ''}'});
   }
 
-  DioChainResponse<T> setHeaders(Map<String, dynamic> headers, [bool mix = true]) {
+  DioChainResponse<T> setHeaders(Map<String, dynamic> headers,
+      [bool mix = true]) {
     if (headers['content-type'] != null) {
       options.contentType = headers['content-type'];
     }
@@ -452,7 +487,8 @@ class DioChainResponse<T> implements Future<Response<T>> {
   }
 
   DioChainResponse<T> setUserAgent(String? value) {
-    var agent = value ?? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0';
+    var agent = value ??
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0';
     return setHeaders({"User-Agent": agent});
   }
 
@@ -558,17 +594,20 @@ class DioChainResponse<T> implements Future<Response<T>> {
   }
 
   @override
-  Future<Response<T>> catchError(Function onError, {bool Function(Object error)? test}) {
+  Future<Response<T>> catchError(Function onError,
+      {bool Function(Object error)? test}) {
     return _promise.catchError(onError, test: test);
   }
 
   @override
-  Future<R> then<R>(FutureOr<R> Function(Response<T> value) onValue, {Function? onError}) {
+  Future<R> then<R>(FutureOr<R> Function(Response<T> value) onValue,
+      {Function? onError}) {
     return _promise.then(onValue, onError: onError);
   }
 
   @override
-  Future<Response<T>> timeout(Duration timeLimit, {FutureOr<Response<T>> Function()? onTimeout}) {
+  Future<Response<T>> timeout(Duration timeLimit,
+      {FutureOr<Response<T>> Function()? onTimeout}) {
     return _promise.timeout(timeLimit, onTimeout: onTimeout);
   }
 
@@ -582,14 +621,17 @@ enum DioChainMethod { post, get, put, head }
 
 class DioChain {
   late BaseOptions _options = BaseOptions();
-  Future<Future<Response> Function(Response response)?> Function(DioChainResponse chain)? _interceptor;
+  Future<Future<Response> Function(Response response)?> Function(
+      DioChainResponse chain)? _interceptor;
 
   DioChain({
     String? baseUrl,
     Map<String, dynamic> headers = const {},
     ValidateStatus? validateStatus,
     ResponseType? responseType,
-    Future<Future<Response> Function(Response response)?> Function(DioChainResponse chain)? interceptor,
+    Future<Future<Response> Function(Response response)?> Function(
+            DioChainResponse chain)?
+        interceptor,
   }) {
     _interceptor = interceptor;
     _options = _options.copyWith(
@@ -626,7 +668,8 @@ class DioChain {
   }
 
   DioChain setUserAgent([String? value]) {
-    var agent = value ?? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0';
+    var agent = value ??
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0';
     return setHeaders({"User-Agent": agent});
   }
 
@@ -673,7 +716,8 @@ class DioChain {
     ).query(params ?? {});
   }
 
-  DioChainResponse<ResponseBody> getStream(String url, [Map<String, dynamic>? params]) {
+  DioChainResponse<ResponseBody> getStream(String url,
+      [Map<String, dynamic>? params]) {
     return request<ResponseBody>(
       url: url,
       method: DioChainMethod.get,

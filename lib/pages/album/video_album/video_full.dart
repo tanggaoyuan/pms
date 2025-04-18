@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:media_player_plugin/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/pages/album/export.dart';
+import 'package:string_normalizer/string_normalizer.dart';
 import 'package:switch_orientation/switch_orientation.dart';
 
 class VideoFullPage extends StatefulWidget {
@@ -176,7 +177,7 @@ class _VideoFullPageState extends State<VideoFullPage> {
                           height: 40,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
-                            header.name,
+                            StringNormalizer.normalize(header.name),
                             style: const TextStyle(
                               color: Colors.white,
                               overflow: TextOverflow.ellipsis,

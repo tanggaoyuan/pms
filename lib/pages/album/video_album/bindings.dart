@@ -36,10 +36,11 @@ class VideoModelController extends GetxController {
   final _album = (Get.arguments as AlbumDbModel).obs;
 
   MediaDbModel get header {
-    return videos.isEmpty
+    return videos.isEmpty || playIndex.value > videos.length - 1
         ? MediaDbModel(
             name: "数据加载中".tr,
             platform: album.platform,
+            cover: ImgCompIcons.mainCover,
             type: MediaTagType.video,
           )
         : videos[playIndex.value < 0 ? 0 : playIndex.value];
@@ -425,11 +426,12 @@ class VideoModelController extends GetxController {
         );
       }
       for (var video in videos) {
-        if (playIndex.value != -1 &&
-            video.id == this.videos[playIndex.value].id) {
-          playIndex.value = 0;
+        if (this.videos.length - 1 < playIndex.value) {
+          playIndex.value = this.videos.length - 2;
         }
         this.videos.remove(video);
+
+        print("this.videos ${this.videos.length}");
         var num = album.songIds.indexOf(video.id);
         album.count--;
         if (num != -1) {
