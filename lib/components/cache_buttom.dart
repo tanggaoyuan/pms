@@ -44,9 +44,21 @@ class _CacheButtomCompState extends State<CacheButtomComp> {
           EasyLoading.show(
               status: '清理缓存中...'.tr, maskType: EasyLoadingMaskType.black);
           try {
+            
             await CachedNetworkImageProvider.defaultCacheManager.emptyCache();
-            var cache = await getApplicationCacheDirectory();
-            await cache.delete(recursive: true);
+            var cacheDir = await getApplicationCacheDirectory();
+
+            if (await cacheDir.exists()) {
+                final files = cacheDir.listSync();
+                for (var file in files) {
+                  try {
+                    await file.delete(recursive: true);
+                  } catch (e) {
+                    print('删除失败: $e');
+                  }
+                }
+            }
+
             String cachePath = await getDatabasesPath();
             final hiveDir = Directory("$cachePath/hive");
             if (hiveDir.existsSync()) {

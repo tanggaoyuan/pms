@@ -75,8 +75,6 @@ class TaskController extends GetxController {
         }) !=
         null;
 
-    Tool.log([isExist, taskType, media.local]);
-
     if (isExist) {
       return;
     }
@@ -193,9 +191,8 @@ class TaskController extends GetxController {
         _downloadQue[task.id] = [];
         task.status = MediaTaskStatus.pending;
 
-        var cachepath = await Tool.getAppCachePath();
-        var dirPath = '$cachepath/${media.platform.name}';
-        await Directory(dirPath).create(recursive: true);
+        var dirLastPath = '/${media.platform.name}';
+        await Directory("${Tool.appCachePath}$dirLastPath").create(recursive: true);
 
         var [audioUrl, videoUrl] = await media.getDownloadUrl();
 
@@ -242,7 +239,7 @@ class TaskController extends GetxController {
             var ext = urlname.split('.').last;
 
             var basepath =
-                '$dirPath/${media.name.replaceAll(RegExp(r'[/.]'), '_')}';
+                '$dirLastPath/${media.name.replaceAll(RegExp(r'[/.]'), '_')}';
 
             var savePath = '$basepath.$ext';
 
@@ -250,7 +247,7 @@ class TaskController extends GetxController {
               savePath = '${savePath}_audio_track.$ext';
             }
 
-            var tempfile = File(savePath);
+            var tempfile = File("${Tool.appCachePath}$savePath");
 
             var cachePosition =
                 tempfile.existsSync() ? tempfile.lengthSync() : 0;
@@ -281,7 +278,7 @@ class TaskController extends GetxController {
 
             await Tool.saveAsset(
               response: response,
-              path: savePath,
+              path: tempfile.path,
               start: cachePosition,
             );
 
@@ -352,21 +349,16 @@ class TaskController extends GetxController {
 
             if (Tool.isAudioFile(media.local) ||
                 Tool.isVideoFile(media.local)) {
-              var assetpath = await Tool.getAppAssetsPath();
-              var cachepath = await Tool.getAppCachePath();
-              var cachefile = File(media.local);
 
-              var savepath = media.local.replaceAll(cachepath, assetpath);
+              var cachefile = File(media.cacheAbsolutePath);
 
               await Directory(
-                savepath.substring(0, savepath.lastIndexOf('/')),
+                media.assetAbsolutePath.substring(0, media.assetAbsolutePath.lastIndexOf('/')),
               ).create(recursive: true);
 
-              var file = await cachefile.copy(savepath);
+              await cachefile.copy(media.assetAbsolutePath);
 
-              media.local = file.path;
-
-              await media.update();
+              await cachefile.delete(recursive: true);
 
               var [album] = await AlbumDbModel.findByRelationIds(
                 ids: [MediaPlatformType.local.name],
@@ -436,7 +428,7 @@ class TaskController extends GetxController {
 
           if (album.isAliyunPlatform) {
             var uploader = await AliyunApi.getUploadPaths(
-              filePath: media.local,
+              filePath: media.assetAbsolutePath,
               driveId: user.extra.driveId,
               xDeviceId: user.extra.xDeviceId,
               token: user.accessToken,
@@ -482,7 +474,7 @@ class TaskController extends GetxController {
 
             var file = await NeteaseApi.uploadCheck(
               cookie: user.accessToken,
-              filepath: media.local,
+              filepath: media.assetAbsolutePath,
             ).getData();
 
             file = await NeteaseApi.uploadCreate(
@@ -558,24 +550,26 @@ class TaskController extends GetxController {
 
       if (media.isAudio) {
         var index = media.local.lastIndexOf('.');
-        var cachepath = await Tool.getAppCachePath();
-        var assetpath = await Tool.getAppAssetsPath();
-        var audioOutput =
-            '${media.local.replaceAll(cachepath, assetpath).substring(0, index)}.flac';
-        var outputFile = File(audioOutput);
+       
+        var audioRelativePath  =
+            '${media.local.substring(0, index)}.flac';
+        
+        var outputFile = File("${Tool.appAssetsPath}$audioRelativePath");
+
         if (outputFile.existsSync()) {
           await outputFile.delete(recursive: true);
         }
+
         await Directory(
-          audioOutput.substring(0, audioOutput.lastIndexOf('/')),
+          outputFile.path.substring(0, outputFile.path.lastIndexOf('/')),
         ).create(recursive: true);
 
-        var mediaInfo = await FfmpegTool.getMediaInformation(media.local);
+        var mediaInfo = await FfmpegTool.getMediaInformation(media.cacheAbsolutePath);
 
         String? album = media.albumName;
         String? artist = media.artist;
         String? title = media.name;
-        String? cover = File(media.cover).existsSync() ? media.cover : null;
+        String? cover = File("${Tool.coverStorePath}${media.cover}").existsSync() ? "${Tool.coverStorePath}${media.cover}" : null;
 
         if (mediaInfo != null) {
           var tag = mediaInfo.getTags();
@@ -587,8 +581,8 @@ class TaskController extends GetxController {
         }
 
         var promise = FfmpegTool.convertAudio(
-          input: media.local,
-          output: audioOutput,
+          input: media.cacheAbsolutePath,
+          output: outputFile.path,
           album: album,
           artist: artist,
           title: title,
@@ -600,15 +594,18 @@ class TaskController extends GetxController {
         );
         _formatQue[task.id] = promise;
         promise.then((_) async {
-          var oldPath = media.local;
-          media.local = audioOutput;
-          var file = File(oldPath);
+
+          var cacheAbsolutePath = media.cacheAbsolutePath;
+      
+          media.local = audioRelativePath;
           await media.update();
+          await task.remove();
+          formats.remove(task);
+
+          var file = File(cacheAbsolutePath);
           if (file.existsSync()) {
             await file.delete(recursive: true);
           }
-          await task.remove();
-          formats.remove(task);
 
           var [album] = await AlbumDbModel.findByRelationIds(
             ids: [MediaPlatformType.local.name],
@@ -628,21 +625,23 @@ class TaskController extends GetxController {
 
       if (media.isVideo) {
         var index = media.local.lastIndexOf('.');
-        var cachepath = await Tool.getAppCachePath();
-        var assetpath = await Tool.getAppAssetsPath();
-        var videoOutput =
-            '${media.local.replaceAll(cachepath, assetpath).substring(0, index)}.mp4';
-        var outputFile = File(videoOutput);
+        var videoRelativePath =
+            '${media.local.substring(0, index)}.mp4';
+
+
+        var outputFile = File("${Tool.appAssetsPath}$videoRelativePath");
         if (outputFile.existsSync()) {
           await outputFile.delete(recursive: true);
         }
+
         await Directory(
-          videoOutput.substring(0, videoOutput.lastIndexOf('/')),
+          outputFile.path.substring(0, outputFile.path.lastIndexOf('/')),
         ).create(recursive: true);
+
         var promise = FfmpegTool.merge(
-          videoInput: media.local,
-          audioInput: media.audioTrack,
-          output: videoOutput,
+          videoInput: media.cacheAbsolutePath,
+          audioInput: media.cacheAudioTrackAbsolutePath,
+          output: outputFile.path,
           onProgress: (progress, duration) {
             task.total = duration.round();
             task.loaded = (progress / 100 * duration).round();
@@ -650,27 +649,37 @@ class TaskController extends GetxController {
         );
         _formatQue[task.id] = promise;
         promise.then((_) async {
-          var oldPath = media.local;
-          var oldAudioTrack = media.audioTrack;
-          media.local = videoOutput;
+
+          var audioTrack = media.cacheAudioTrackAbsolutePath;
+          var cacheAbsolutePath = media.cacheAbsolutePath;
+
+          media.local = videoRelativePath;
           media.audioTrack = '';
+
           await media.update();
-          var file = File(oldPath);
-          if (file.existsSync()) {
-            await file.delete(recursive: true);
-          }
-          var audioFile = File(oldAudioTrack);
-          if (audioFile.existsSync()) {
-            await audioFile.delete(recursive: true);
-          }
+
           await task.remove();
           formats.remove(task);
+          
           var [album] = await AlbumDbModel.findByRelationIds(
             ids: [MediaPlatformType.local.name],
             type: media.type,
           );
           album.songIds.add(media.id);
           await album.update();
+
+
+          var file = File(cacheAbsolutePath);
+       
+          if (file.existsSync()) {
+            await file.delete(recursive: true);
+          }
+
+          var audioFile = File(audioTrack);
+          if (audioFile.existsSync()) {
+            await audioFile.delete(recursive: true);
+          }
+
         }).catchError((e) {
           task.status = MediaTaskStatus.pause;
           task.update();

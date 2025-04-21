@@ -3,11 +3,13 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:logger/logger.dart';
 import 'package:pms/utils/chain.dart';
+import 'package:sqflite/sqflite.dart';
 
 var logger = Logger(printer: PrettyPrinter());
 
@@ -39,6 +41,16 @@ class Tool {
     logger.i(message);
   }
 
+  static var appCachePath = "";
+  static var appAssetsPath = "";
+  static var coverStorePath = "";
+
+  static initAssetPath() async {
+    appCachePath = await getAppCachePath();
+    appAssetsPath = await getAppAssetsPath();
+    coverStorePath = await getCoverStorePath();
+  }
+
   /// 获取应用缓存路径
   static Future<String> getAppCachePath() async {
     var doc = await getApplicationCacheDirectory();
@@ -46,10 +58,10 @@ class Tool {
   }
 
   /// 获取应用资源路径
-  static Future<String> getAppAssetsPath() async {
-    var doc = await getApplicationSupportDirectory();
-    return doc.path;
-  }
+static Future<String> getAppAssetsPath() async {
+  final doc = await getApplicationDocumentsDirectory();
+  return doc.path;
+}
 
   /// 获取封面保存路径
   static Future<String> getCoverStorePath() async {
@@ -215,10 +227,9 @@ class Tool {
     }
 
     for (String value in names) {
-      var urlencode =
-          value
-              .replaceAll(RegExp(r"attachment|;|filename|\*|=|UTF-8|''"), '')
-              .trim();
+      var urlencode = value
+          .replaceAll(RegExp(r"attachment|;|filename|\*|=|UTF-8|''"), '')
+          .trim();
 
       return Uri.decodeComponent(urlencode);
     }
@@ -246,18 +257,26 @@ class Tool {
       headers: referer == null ? null : {"referer": referer},
     );
     await precacheImage(provider, Get.context!);
+
+    File? file;
+
     if (cacheKey != null) {
       var result = await CachedNetworkImageProvider.defaultCacheManager
           .getFileFromCache(cacheKey);
-      return result!.file;
-    } else {
-      var result = await CachedNetworkImageProvider.defaultCacheManager
-          .getSingleFile(
-            url,
-            headers: referer == null ? {} : {"referer": referer},
-          );
-      return result;
+      file = result?.file;
+    } 
+
+    if(file==null)
+     {
+      var result =
+          await CachedNetworkImageProvider.defaultCacheManager.getSingleFile(
+        url,
+        headers: referer == null ? {} : {"referer": referer},
+      );
+      file = result;
     }
+
+    return file;
   }
 
   static bool isAudioFile(String filePath) {

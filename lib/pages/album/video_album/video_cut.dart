@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -35,9 +35,12 @@ class VideoCutPage extends StatefulWidget {
     },
     transition: Transition.rightToLeft,
   );
+
+
 }
 
 class _VideoCutPageState extends State<VideoCutPage> {
+
   var model = Get.arguments as MediaDbModel;
   late List<double> ranges = [0, 100];
   late List<double> values = [0, 1];
@@ -53,37 +56,45 @@ class _VideoCutPageState extends State<VideoCutPage> {
   late String albumName = "";
   late String art = "";
 
+  final List<StreamSubscription> _subs = [];
+
   init() async {
+
     await player.init();
 
-    player.playStateStream!.listen((event) {
-      setState(() {
-        isPlaying = event.isPlaying;
-      });
-    });
-
-    player.durationStream!.listen((event) {
-      if (event.position >= values.last) {
-        player.pause();
-      }
-
-      if (!isInit) {
-        isInit = true;
-        var end = event.duration;
-        if (end == 0) {
-          return;
-        }
+    _subs.add(
+      player.playStateStream!.listen((event) {
         setState(() {
-          ranges = [0, end];
-          values = ranges;
+          isPlaying = event.isPlaying;
         });
-      }
+      })
+    );
 
-      setState(() {
-        position =
-            isPlaying ? event.position.toInt() - values.first.toInt() : 0;
-      });
-    });
+    _subs.add(
+      player.durationStream!.listen((event) {
+        if (event.position >= values.last) {
+          player.pause();
+        }
+
+        if (!isInit) {
+          isInit = true;
+          var end = event.duration;
+          if (end == 0) {
+            return;
+          }
+          setState(() {
+            ranges = [0, end];
+            values = ranges;
+          });
+        }
+
+        setState(() {
+            position =
+                isPlaying ? max(event.position.toInt() - values.first.toInt(), 0) : 0;
+          });
+        })
+    );
+
 
     setState(() {
       cover = model.cover;
@@ -92,23 +103,28 @@ class _VideoCutPageState extends State<VideoCutPage> {
       art = StringNormalizer.normalize(model.artist);
     });
 
-    await player.setUrl(url: "file://${model.local}");
+    await player.setUrl(url: "file://${model.assetAbsolutePath}");
+    await player.prepare();
+
   }
 
   @override
   void initState() {
     super.initState();
-
     init();
   }
 
   @override
   dispose() {
     super.dispose();
+    for (var item in _subs) {
+      item.cancel();
+    }
     player.destroy();
   }
 
   Widget renderSlider() {
+    
     var primaryColor = Get.theme.primaryColor;
     var barColor = Color.lerp(primaryColor, Colors.white, 0.6);
 
@@ -121,6 +137,7 @@ class _VideoCutPageState extends State<VideoCutPage> {
         child: const SizedBox(),
       );
     }
+
 
     return FlutterSlider(
       values: values,
@@ -189,6 +206,7 @@ class _VideoCutPageState extends State<VideoCutPage> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(
@@ -368,28 +386,36 @@ class _VideoCutPageState extends State<VideoCutPage> {
                       ),
                       onPressed: () async {
                         try {
+
                           EasyLoading.show(
                             status: '提取音频中...'.tr,
                             maskType: EasyLoadingMaskType.black,
                           );
-                          var dirpath = model.local.substring(
+
+                           var relativePath = model.local.substring(
                             0,
                             model.local.lastIndexOf('/'),
                           );
-                          await Directory(dirpath).create(recursive: true);
-                          var output = '$dirpath/${name.split('.').first}.flac';
+
+                          await Directory("${Tool.appAssetsPath}$relativePath").create(recursive: true);
+
+                          relativePath = "$relativePath/${name.split('.').first}.flac";
+
+                          var output = '${Tool.appAssetsPath}$relativePath';
+
                           var outputFile = File(output);
+
 
                           handle([bool del = true]) async {
                             if (del) {
                               await outputFile.delete();
                             }
                             await FfmpegTool.convertAudio(
-                              input: model.local,
-                              output: output,
+                              input: model.assetAbsolutePath,
+                              output: outputFile.path,
                               startTime: values.first,
                               endTime: values.last,
-                              coverPath: cover,
+                              coverPath: cover.startsWith("/")?"${Tool.coverStorePath}$cover":cover,
                               onProgress: (progress, duration) async {
                                 EasyLoading.showProgress(
                                   progress / 100,
@@ -403,7 +429,7 @@ class _VideoCutPageState extends State<VideoCutPage> {
                               cover: cover,
                               artist: art,
                               platform: MediaPlatformType.local,
-                              local: output,
+                              local: relativePath,
                               type: MediaTagType.muisc,
                             );
                             var id = await MediaDbModel.insert(media);
@@ -452,12 +478,19 @@ class _VideoCutPageState extends State<VideoCutPage> {
                             status: '提取音频中...'.tr,
                             maskType: EasyLoadingMaskType.black,
                           );
-                          var dirpath = model.local.substring(
+                          
+                          
+                          var relativePath = model.local.substring(
                             0,
                             model.local.lastIndexOf('/'),
                           );
-                          await Directory(dirpath).create(recursive: true);
-                          var output = '$dirpath/${name.split('.').first}.mp4';
+
+                          await Directory("${Tool.appAssetsPath}$relativePath").create(recursive: true);
+
+                          relativePath = "$relativePath/${name.split('.').first}.mp4";
+
+                          var output = '${Tool.appAssetsPath}$relativePath';
+
                           var outputFile = File(output);
 
                           handle([bool del = true]) async {
@@ -465,7 +498,7 @@ class _VideoCutPageState extends State<VideoCutPage> {
                               await outputFile.delete();
                             }
                             await FfmpegTool.cropVideo(
-                              input: model.local,
+                              input: model.assetAbsolutePath,
                               output: output,
                               startTime: values.first,
                               endTime: values.last,
@@ -482,9 +515,10 @@ class _VideoCutPageState extends State<VideoCutPage> {
                               cover: cover,
                               artist: art,
                               platform: MediaPlatformType.local,
-                              local: output,
+                              local: relativePath,
                               type: MediaTagType.video,
                             );
+
                             var id = await MediaDbModel.insert(media);
                             media.id = id;
                             var [album] = await AlbumDbModel.findByRelationIds(
@@ -509,6 +543,7 @@ class _VideoCutPageState extends State<VideoCutPage> {
                           }
                           await handle(false);
                         } catch (e) {
+                          Tool.log(['ee', e]);
                           EasyLoading.dismiss();
                           EasyLoading.showToast('转码异常'.tr);
                         }

@@ -1,140 +1,97 @@
 PODS:
-  - audio_session (0.0.1):
-    - Flutter
-  - ffmpeg-kit-ios-https (6.0)
   - ffmpeg_kit_flutter (6.0.3):
-    - ffmpeg_kit_flutter/https (= 6.0.3)
+    - ffmpeg_kit_flutter/ffmpeg_kit_ios_local (= 6.0.3)
     - Flutter
-  - ffmpeg_kit_flutter/https (6.0.3):
-    - ffmpeg-kit-ios-https (= 6.0)
+  - ffmpeg_kit_flutter/ffmpeg_kit_ios_local (6.0.3):
     - Flutter
   - Flutter (1.0.0)
+  - flutter_native_splash (2.4.3):
+    - Flutter
   - LXFProtocolTool/AssociatedObjectStore (3.2.1)
   - LXFProtocolTool/Base (3.2.1)
   - LXFProtocolTool/FullScreenable (3.2.1):
     - LXFProtocolTool/AssociatedObjectStore
     - LXFProtocolTool/Base
-  - media_kit_libs_ios_video (1.0.4):
-    - Flutter
-  - media_kit_native_event_loop (1.0.0):
-    - Flutter
-  - media_kit_video (0.0.1):
-    - Flutter
   - media_player_plugin (0.0.1):
     - Flutter
-  - package_info_plus (0.4.5):
-    - Flutter
+    - SwiftyXMLParser (~> 5.0.0)
   - pasteboard (0.0.1):
     - Flutter
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - screen_brightness_ios (0.1.0):
-    - Flutter
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
+  - SwiftyXMLParser (5.0.0)
   - switch_orientation (0.0.1):
     - Flutter
     - LXFProtocolTool/FullScreenable (~> 3.2.1)
-  - video_player_avfoundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - volume_controller (0.0.1):
     - Flutter
-  - wakelock_plus (0.0.1):
-    - Flutter
-  - webview_cookie_manager_plus (0.0.1):
+  - webview_cookie_manager (0.0.1):
     - Flutter
   - webview_flutter_wkwebview (0.0.1):
     - Flutter
     - FlutterMacOS
 
 DEPENDENCIES:
-  - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - ffmpeg_kit_flutter (from `.symlinks/plugins/ffmpeg_kit_flutter/ios`)
   - Flutter (from `Flutter`)
-  - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
-  - media_kit_native_event_loop (from `.symlinks/plugins/media_kit_native_event_loop/ios`)
-  - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
+  - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - media_player_plugin (from `.symlinks/plugins/media_player_plugin/ios`)
-  - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - pasteboard (from `.symlinks/plugins/pasteboard/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
-  - screen_brightness_ios (from `.symlinks/plugins/screen_brightness_ios/ios`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - switch_orientation (from `.symlinks/plugins/switch_orientation/ios`)
-  - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/darwin`)
   - volume_controller (from `.symlinks/plugins/volume_controller/ios`)
-  - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
-  - webview_cookie_manager_plus (from `.symlinks/plugins/webview_cookie_manager_plus/ios`)
+  - webview_cookie_manager (from `.symlinks/plugins/webview_cookie_manager/ios`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
 
 SPEC REPOS:
   trunk:
-    - ffmpeg-kit-ios-https
     - LXFProtocolTool
+    - SwiftyXMLParser
 
 EXTERNAL SOURCES:
-  audio_session:
-    :path: ".symlinks/plugins/audio_session/ios"
   ffmpeg_kit_flutter:
     :path: ".symlinks/plugins/ffmpeg_kit_flutter/ios"
   Flutter:
     :path: Flutter
-  media_kit_libs_ios_video:
-    :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
-  media_kit_native_event_loop:
-    :path: ".symlinks/plugins/media_kit_native_event_loop/ios"
-  media_kit_video:
-    :path: ".symlinks/plugins/media_kit_video/ios"
+  flutter_native_splash:
+    :path: ".symlinks/plugins/flutter_native_splash/ios"
   media_player_plugin:
     :path: ".symlinks/plugins/media_player_plugin/ios"
-  package_info_plus:
-    :path: ".symlinks/plugins/package_info_plus/ios"
   pasteboard:
     :path: ".symlinks/plugins/pasteboard/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
-  screen_brightness_ios:
-    :path: ".symlinks/plugins/screen_brightness_ios/ios"
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
   switch_orientation:
     :path: ".symlinks/plugins/switch_orientation/ios"
-  video_player_avfoundation:
-    :path: ".symlinks/plugins/video_player_avfoundation/darwin"
   volume_controller:
     :path: ".symlinks/plugins/volume_controller/ios"
-  wakelock_plus:
-    :path: ".symlinks/plugins/wakelock_plus/ios"
-  webview_cookie_manager_plus:
-    :path: ".symlinks/plugins/webview_cookie_manager_plus/ios"
+  webview_cookie_manager:
+    :path: ".symlinks/plugins/webview_cookie_manager/ios"
   webview_flutter_wkwebview:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
-  audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
-  ffmpeg-kit-ios-https: ac1fbdb6095fc1595b446084a3447de2c6d78347
-  ffmpeg_kit_flutter: 66a088989cd7aa07aa8cde7c93a2e4611753fea5
+  ffmpeg_kit_flutter: e7449f74ff7dd97fab1b479c862f7f72ff1127ca
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_native_splash: 6cad9122ea0fad137d23137dd14b937f3e90b145
   LXFProtocolTool: 34dbdb98b3ed7d53465709797e3654f9d29ecd40
-  media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
-  media_kit_native_event_loop: 5fba1a849a6c87a34985f1e178a0de5bd444a0cf
-  media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
-  media_player_plugin: 5df77e1772de9304cc6cad7981015681d68fc2ea
-  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
+  media_player_plugin: dd3150f32ccf900a9d04cefc3b9d14ded029786b
   pasteboard: 49088aeb6119d51f976a421db60d8e1ab079b63c
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
-  screen_brightness_ios: 5ed898fa50fa82a26171c086ca5e28228f932576
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
+  SwiftyXMLParser: 5ebb8793192f403fa8cc691045143906122a7a75
   switch_orientation: d253da1bb2b22d76a6a4168e90768ccfdcf02501
-  video_player_avfoundation: 2cef49524dd1f16c5300b9cd6efd9611ce03639b
   volume_controller: ca1cde542ee70fad77d388f82e9616488110942b
-  wakelock_plus: 04623e3f525556020ebd4034310f20fe7fda8b49
-  webview_cookie_manager_plus: 12fb24c0f41106698164b53accddee92d4570cf8
+  webview_cookie_manager: d63a76cabdf42a7ea3d92768ac67d4853a1367f8
   webview_flutter_wkwebview: 1821ceac936eba6f7984d89a9f3bcb4dea99ebb2
 
-PODFILE CHECKSUM: 8c092d66fcbc90649733c4be94bb20b4baa4e66f
+PODFILE CHECKSUM: 0c1a7d39d2cab86062129124e8242f32d66e2d9b
 
 COCOAPODS: 1.16.2

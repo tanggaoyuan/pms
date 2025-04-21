@@ -23,8 +23,8 @@ class VideoAlbumPage extends GetView<VideoModelController> {
       Color? color,
     }) {
       return Container(
-        height: 40.w,
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        height: 46.w,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: OutlinedButton(
           style: ButtonStyle(
             padding: WidgetStatePropertyAll(
@@ -35,7 +35,7 @@ class VideoAlbumPage extends GetView<VideoModelController> {
             backgroundColor: WidgetStatePropertyAll(color),
           ),
           onPressed: onPressed,
-          child: Text(text, style: TextStyle(fontSize: 22.sp)),
+          child: Text(text, style: TextStyle(fontSize: 24.sp)),
         ),
       );
     }

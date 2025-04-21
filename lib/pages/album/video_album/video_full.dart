@@ -10,6 +10,7 @@ import 'package:string_normalizer/string_normalizer.dart';
 import 'package:switch_orientation/switch_orientation.dart';
 
 class VideoFullPage extends StatefulWidget {
+  
   const VideoFullPage({super.key});
 
   static String path = '/video/full';
@@ -250,6 +251,7 @@ class _VideoFullPageState extends State<VideoFullPage> {
         await controller.play();
       }
     });
+
     _worker = ever(controller.playIndex, (index) {
       var page = (pageController.page ?? 0);
       var old = page % controller.videos.length;
@@ -257,6 +259,7 @@ class _VideoFullPageState extends State<VideoFullPage> {
         pageController.jumpToPage(index);
       }
     });
+
   }
 
   @override

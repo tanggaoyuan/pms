@@ -83,14 +83,17 @@ class MusicModelController extends GetxController {
       await DioChainCache.deleteLocalCache(tag);
     }
 
-    var list = await MediaDbModel.findByRelationAlbumId(
-      ids: [album.relationId],
-      platform: album.platform,
-      type: MediaTagType.muisc,
-    );
+     if (album.relationId != MediaPlatformType.local.name) {
+      var [album] = await AlbumDbModel.findByRelationIds(
+        ids: [MediaPlatformType.local.name],
+        type: MediaTagType.muisc,
+      );
 
-    for (var item in list) {
-      _downloads[item.relationId] = item;
+      var list = await MediaDbModel.findByIds(album.songIds);
+
+      for (var item in list) {
+        _downloads[item.relationId] = item;
+      }
     }
 
     if (album.isAliyunPlatform) {
@@ -297,9 +300,7 @@ class MusicModelController extends GetxController {
       if (album.isLocalPlatform &&
           album.relationId == MediaPlatformType.local.name) {
         for (var song in songs) {
-          await Tool.deleteAsset(song.local);
-          song.local = '';
-          await song.update();
+          await song.remove();
         }
       }
 

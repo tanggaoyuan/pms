@@ -202,6 +202,7 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
                       fontSize: 24.sp,
                     ),
                     onSeek: (duration) {
+                      audioController.position.value = duration;
                       audioController.player.seek(
                         duration.inSeconds.toDouble(),
                       );
@@ -231,27 +232,37 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
                         size: 50.w,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        if (audioController.songs.isEmpty) {
-                          EasyLoading.showToast("暂无播放数据");
-                          return;
-                        }
-
-                        if (audioController.playing.value) {
-                          audioController.player.pause();
-                        } else {
-                          audioController.player.play();
-                        }
-                      },
-                      icon: FaIcon(
-                        audioController.playing.value
-                            ? FontAwesomeIcons.solidCirclePause
-                            : FontAwesomeIcons.solidCirclePlay,
-                        color: Colors.white,
-                        size: 80.w,
+                    if (audioController.isBuffering.value)
+                      SizedBox(
+                        width: 60.w,
+                        height: 60.w,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2.0, // 控制线条粗细（视觉上会影响大小）
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
+                    if (!audioController.isBuffering.value)
+                      IconButton(
+                        onPressed: () {
+                          if (audioController.songs.isEmpty) {
+                            EasyLoading.showToast("暂无播放数据");
+                            return;
+                          }
+
+                          if (audioController.playing.value) {
+                            audioController.player.pause();
+                          } else {
+                            audioController.player.play();
+                          }
+                        },
+                        icon: FaIcon(
+                          audioController.playing.value
+                              ? FontAwesomeIcons.solidCirclePause
+                              : FontAwesomeIcons.solidCirclePlay,
+                          color: Colors.white,
+                          size: 80.w,
+                        ),
+                      ),
                     IconButton(
                       onPressed: () {
                         audioController.next();

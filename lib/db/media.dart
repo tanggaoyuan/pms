@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:pms/apis/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/db/export.dart';
@@ -34,6 +33,22 @@ class MediaDbModel {
   late int updateTime;
   late int createTime;
 
+  String get cacheAbsolutePath {
+    return "${Tool.appCachePath}$local";
+  }
+
+  String get assetAbsolutePath {
+    return "${Tool.appAssetsPath}$local";
+  }
+
+   String get cacheAudioTrackAbsolutePath {
+    return "${Tool.appCachePath}$audioTrack";
+  }
+
+  String get assetAudioTrackAbsolutePath {
+    return "${Tool.appAssetsPath}$audioTrack";
+  }
+  
   MediaDbModel({
     required this.name,
     required this.platform,
@@ -142,8 +157,16 @@ class MediaDbModel {
 
   /// [audio,video]
   Future<List<String>> getPlayUrl() async {
+
+
+    print("media ${id} ${type} ${assetAbsolutePath}");
+
+
     if (local.isNotEmpty) {
-      return isAudio ? [local, ''] : [audioTrack, local];
+
+      var pre = "file://";
+
+      return isAudio ? [pre + assetAbsolutePath, ''] : [pre + assetAudioTrackAbsolutePath, pre + assetAbsolutePath];
     }
 
     var [user] = await UserDbModel.findByRelationIds([
@@ -320,9 +343,15 @@ class MediaDbModel {
     };
   }
 
+  deleteAssetFile() async {
+    await Tool.deleteAsset(assetAbsolutePath);
+  }
+
   Future<int> remove() async {
     var db = await DbHelper.open();
-    return db.delete(tableName, where: 'id = ?', whereArgs: [id]);
+    var result = db.delete(tableName, where: 'id = ?', whereArgs: [id]);
+    await deleteAssetFile();
+    return result;
   }
 
   Future<MediaDbModel> update() async {
@@ -386,10 +415,9 @@ class MediaDbModel {
         cacheKey: media.cacheKey,
         referer: media.extra.referer,
       );
-      var coverpath = await Tool.getCoverStorePath();
       var name = file.path.split('/').last;
-      await file.copy('$coverpath/$name');
-      media.cover = '$coverpath/$name';
+      await file.copy('${Tool.coverStorePath}/$name');
+      media.cover = '/$name';
     }
     final map = media.toMap();
     map['id'] = null;
@@ -403,9 +431,7 @@ class MediaDbModel {
   static Future<List<MediaDbModel>> songs() async {
     final db = await _init();
     final List<Map<String, dynamic>> list = await db.query(
-      tableName,
-      where: 'type = ?',
-      whereArgs: [MediaTagType.muisc.name],
+      tableName
     );
     return list.map((json) => MediaDbModel.fromMap(json)).toList();
   }

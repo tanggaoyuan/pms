@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/components/cache_buttom.dart';
+import 'package:pms/db/media.dart';
 import 'package:pms/pages/export.dart';
 import 'package:pms/utils/export.dart';
 import 'package:simple_ruler_picker/simple_ruler_picker.dart';
@@ -307,6 +308,16 @@ class SettingPage extends GetView<SettingController> {
             renderTimeMode(),
             SizedBox(height: 20.w),
             const CacheButtomComp(),
+            SizedBox(height: 20.w),
+            OutlinedButton(onPressed: () async {
+              var results = await MediaDbModel.songs();
+
+              results.forEach((item){
+                Tool.log(item.toMap());
+              });
+
+
+            }, child: Text("xxxxxxxxxxxxx")),
           ],
         ),
       ),

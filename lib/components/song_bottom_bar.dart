@@ -217,26 +217,36 @@ class _SongBottomBarState extends State<_SongBottomBar> {
                   },
                 ),
               ),
-              IconButton(
-                onPressed: () {
-                  if (audioController.songs.isEmpty) {
-                    EasyLoading.showToast("暂无播放数据".tr);
-                    return;
-                  }
-
-                  if (audioController.playing.value) {
-                    audioController.player.pause();
-                  } else {
-                    audioController.player.play();
-                  }
-                },
-                icon: ImgComp(
-                  source: audioController.playing.value
-                      ? ImgCompIcons.pause
-                      : ImgCompIcons.play,
-                  width: 35.w,
+              if (audioController.isBuffering.value)
+                SizedBox(
+                  width: 40.w,
+                  height: 40.w,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2.0, // 控制线条粗细（视觉上会影响大小）
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
+              if (!audioController.isBuffering.value)
+                IconButton(
+                  onPressed: () {
+                    if (audioController.songs.isEmpty) {
+                      EasyLoading.showToast("暂无播放数据".tr);
+                      return;
+                    }
+
+                    if (audioController.playing.value) {
+                      audioController.player.pause();
+                    } else {
+                      audioController.player.play();
+                    }
+                  },
+                  icon: ImgComp(
+                    source: audioController.playing.value
+                        ? ImgCompIcons.pause
+                        : ImgCompIcons.play,
+                    width: 35.w,
+                  ),
+                ),
               IconButton(
                 onPressed: () {
                   Tool.showBottomSheet(

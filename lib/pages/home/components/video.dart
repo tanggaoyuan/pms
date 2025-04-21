@@ -29,25 +29,23 @@ class VideoComp extends GetView<HomeController> {
                   await user.updateToken();
                   for (var album in list) {
                     if (album.isAliyunPlatform) {
-                      var sizeInfo =
-                          await AliyunApi.getFolderSizeInfo(
-                            fileId: album.relationId,
-                            driveId: user.extra.driveId,
-                            xDeviceId: user.extra.xDeviceId,
-                            token: user.accessToken,
-                            xSignature: user.extra.xSignature,
-                          ).getData();
+                      var sizeInfo = await AliyunApi.getFolderSizeInfo(
+                        fileId: album.relationId,
+                        driveId: user.extra.driveId,
+                        xDeviceId: user.extra.xDeviceId,
+                        token: user.accessToken,
+                        xSignature: user.extra.xSignature,
+                      ).getData();
 
                       if (sizeInfo.fileCount > 0) {
-                        var files =
-                            await AliyunApi.search(
-                              driveId: user.extra.driveId,
-                              xDeviceId: user.extra.xDeviceId,
-                              token: user.accessToken,
-                              xSignature: user.extra.xSignature,
-                              parentFileIds: [album.relationId],
-                              categorys: ['audio', 'video'],
-                            ).getData();
+                        var files = await AliyunApi.search(
+                          driveId: user.extra.driveId,
+                          xDeviceId: user.extra.xDeviceId,
+                          token: user.accessToken,
+                          xSignature: user.extra.xSignature,
+                          parentFileIds: [album.relationId],
+                          categorys: ['audio', 'video'],
+                        ).getData();
                         var cover = files.items.firstWhereOrNull(
                           (item) => item.thumbnail.isNotEmpty,
                         );
@@ -60,10 +58,9 @@ class VideoComp extends GetView<HomeController> {
 
                     if (album.isNeteasePlatform &&
                         album.relationId.contains('cloud')) {
-                      var response =
-                          await NeteaseApi.getCloudSong(
-                            cookie: user.accessToken,
-                          ).getData();
+                      var response = await NeteaseApi.getCloudSong(
+                        cookie: user.accessToken,
+                      ).getData();
                       album.count = response.count;
                     }
 
@@ -72,10 +69,9 @@ class VideoComp extends GetView<HomeController> {
                         url: album.cover,
                         referer: user.extra.referer,
                       );
-                      var coverpath = await Tool.getCoverStorePath();
                       var name = file.path.split('/').last;
-                      await file.copy('$coverpath/$name');
-                      album.cover = '$coverpath/$name';
+                      await file.copy('${Tool.coverStorePath}/$name');
+                      album.cover = '/$name';
                     }
 
                     await AlbumDbModel.insert(album);
@@ -142,13 +138,12 @@ class VideoComp extends GetView<HomeController> {
 
               return AlbumItemComp(
                 album,
-                onDelete:
-                    disable
-                        ? null
-                        : () async {
-                          await AlbumDbModel.delete(albums[index].id);
-                          albums.remove(albums[index]);
-                        },
+                onDelete: disable
+                    ? null
+                    : () async {
+                        await AlbumDbModel.delete(albums[index].id);
+                        albums.remove(albums[index]);
+                      },
                 onPress: () async {
                   await VideoAlbumPage.to(albums[index]);
                   controller.initVideoAlbums();

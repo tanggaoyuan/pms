@@ -86,10 +86,9 @@ class MusicComp extends GetView<HomeController> {
                           referer: user.extra.referer,
                         );
                       }
-                      var coverpath = await Tool.getCoverStorePath();
                       var name = file.path.split('/').last;
-                      await file.copy('$coverpath/$name');
-                      album.cover = '$coverpath/$name';
+                      await file.copy('${Tool.coverStorePath}/$name');
+                      album.cover = '/$name';
                     }
 
                     await AlbumDbModel.insert(album);

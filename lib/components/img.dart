@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:pms/bindings/audio.dart';
+import 'package:pms/utils/tool.dart';
 
 Map<String, IconData> awesomeIcons = {
   ImgCompIcons.compactDisc: FontAwesomeIcons.compactDisc,
@@ -206,17 +207,17 @@ class _ImgCompState extends State<ImgComp> {
         color: color,
         fit: widget.fit,
       );
-    } else if (source.startsWith('assets/')) {
-      img = Image.asset(
-        source,
+    } else if (source.startsWith('/')) {
+       img = Image.file(
+        File("${Tool.coverStorePath}$source"),
         color: color,
         height: height ?? width,
         width: width,
         fit: widget.fit,
       );
     } else {
-      img = Image.file(
-        File(source),
+      img = Image.asset(
+        source,
         color: color,
         height: height ?? width,
         width: width,

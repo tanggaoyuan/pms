@@ -474,7 +474,7 @@ class BliPlayInfo {
       qualitys: map.getList<int>(['accept_quality']),
       videos: map
           .getList(['dash', 'video'])
-          .map((item) => BliMediaInfo.fromMap(item))
+          .map((item) => BliMediaInfo.fromMap(item)).where((item)=>item.codecid!=12)
           .toList(),
       audios: map
           .getList(['dash', 'audio'])

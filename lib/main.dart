@@ -12,12 +12,13 @@ import 'package:pms/bindings/export.dart';
 import 'package:pms/common/lang.dart';
 import 'package:pms/common/theme_config.dart';
 import 'package:pms/pages/export.dart';
+import 'package:pms/utils/tool.dart';
+// import 'package:pms/utils/cache_file_system.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:switch_orientation/switch_orientation.dart';
 
 initConfig() async {
-  String cachePath = await getDatabasesPath();
-  Hive.init("$cachePath/hive");
+
   EasyLoading.instance.indicatorType = EasyLoadingIndicatorType.squareCircle;
   SwitchOrientation.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -25,6 +26,18 @@ initConfig() async {
     // DeviceOrientation.landscapeLeft,
     // DeviceOrientation.landscapeRight,
   ]);
+
+  String cachePath = await getDatabasesPath();
+  Hive.init("$cachePath/hive");
+  await Tool.initAssetPath();
+
+  // CachedNetworkImageProvider.defaultCacheManager = CacheManager(Config(
+  //   'pms_image_cache',
+  //   repo: JsonCacheInfoRepository(path: '$cachePath/hive/pms_image_cache.json'),
+  //   fileSystem: IOFileSystemEx("pms_image_cache"),
+  //   stalePeriod: const Duration(days: 30),
+  // ));
+
 }
 
 void main() async {

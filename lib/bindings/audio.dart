@@ -115,6 +115,7 @@ class AudioController extends GetxController {
   }
 
   play(int index, [int? albumId]) async {
+
     if (albumId != null) {
       this.albumId.value = albumId;
     }
@@ -150,6 +151,7 @@ class AudioController extends GetxController {
       cover: artUri,
       title: song.name,
       artist: song.artist,
+      enableIosHttpRange: song.isNeteasePlatform ? false : null,
     );
     await player.prepare();
     await player.play();

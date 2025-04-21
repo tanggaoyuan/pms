@@ -1,19 +1,11 @@
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:pasteboard/pasteboard.dart';
-import 'package:pms/apis/bili.dart';
-import 'package:pms/bindings/export.dart';
-import 'package:pms/components/export.dart';
-import 'package:pms/db/export.dart';
 import 'package:pms/pages/export.dart';
 import 'package:pms/pages/home/components/music.dart';
-import 'package:pms/utils/export.dart';
 import 'components/video.dart';
 
 class HomePage extends StatefulWidget {

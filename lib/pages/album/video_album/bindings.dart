@@ -90,6 +90,7 @@ class VideoModelController extends GetxController {
           await setPlayIndex(playIndex.value + 1);
           await player.play();
         } else {
+          _position.value = Duration.zero;
           await player.seek(0);
           await player.play();
         }
@@ -116,6 +117,7 @@ class VideoModelController extends GetxController {
         user = users.first;
         await user.updateToken();
       }
+      
       await refreshList(false);
       EasyLoading.dismiss();
     } catch (e) {
@@ -165,14 +167,17 @@ class VideoModelController extends GetxController {
       await DioChainCache.deleteLocalCache(tag);
     }
 
-    var list = await MediaDbModel.findByRelationAlbumId(
-      ids: [album.relationId],
-      platform: album.platform,
-      type: MediaTagType.video,
-    );
+  if (album.relationId != MediaPlatformType.local.name) {
+      var [album] = await AlbumDbModel.findByRelationIds(
+        ids: [MediaPlatformType.local.name],
+        type: MediaTagType.video,
+      );
 
-    for (var item in list) {
-      _downloads[item.relationId] = item;
+      var list = await MediaDbModel.findByIds(album.songIds);
+
+      for (var item in list) {
+        _downloads[item.relationId] = item;
+      }
     }
 
     if (album.isAliyunPlatform) {
@@ -402,9 +407,7 @@ class VideoModelController extends GetxController {
               song.id == this.videos[playIndex.value].id) {
             await player.pause();
           }
-          await Tool.deleteAsset(song.local);
-          song.local = '';
-          await song.update();
+          await song.remove();
         }
       }
       if (album.isAliyunPlatform) {
@@ -431,7 +434,6 @@ class VideoModelController extends GetxController {
         }
         this.videos.remove(video);
 
-        print("this.videos ${this.videos.length}");
         var num = album.songIds.indexOf(video.id);
         album.count--;
         if (num != -1) {
