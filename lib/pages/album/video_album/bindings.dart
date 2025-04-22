@@ -4,13 +4,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:media_player_plugin/media_video_player.dart';
 import 'package:pms/apis/export.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/utils/export.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:media_player_plugin/export.dart';
 
 enum VideoCheckType { download, delete, addAlbum, upload, none }
 
@@ -117,7 +117,7 @@ class VideoModelController extends GetxController {
         user = users.first;
         await user.updateToken();
       }
-      
+
       await refreshList(false);
       EasyLoading.dismiss();
     } catch (e) {
@@ -167,7 +167,7 @@ class VideoModelController extends GetxController {
       await DioChainCache.deleteLocalCache(tag);
     }
 
-  if (album.relationId != MediaPlatformType.local.name) {
+    if (album.relationId != MediaPlatformType.local.name) {
       var [album] = await AlbumDbModel.findByRelationIds(
         ids: [MediaPlatformType.local.name],
         type: MediaTagType.video,
@@ -374,6 +374,8 @@ class VideoModelController extends GetxController {
       title: song.name,
       artist: song.artist,
     );
+
+    await player.prepare();
 
     playIndex.value = index;
   }

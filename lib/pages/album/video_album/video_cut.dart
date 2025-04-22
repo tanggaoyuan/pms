@@ -7,7 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_xlider/flutter_xlider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:media_player_plugin/export.dart';
+import 'package:media_player_plugin/media_player_plugin.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/pages/export.dart';
@@ -35,12 +35,9 @@ class VideoCutPage extends StatefulWidget {
     },
     transition: Transition.rightToLeft,
   );
-
-
 }
 
 class _VideoCutPageState extends State<VideoCutPage> {
-
   var model = Get.arguments as MediaDbModel;
   late List<double> ranges = [0, 100];
   late List<double> values = [0, 1];
@@ -59,7 +56,6 @@ class _VideoCutPageState extends State<VideoCutPage> {
   final List<StreamSubscription> _subs = [];
 
   init() async {
-
     await player.init();
 
     _subs.add(
@@ -67,7 +63,7 @@ class _VideoCutPageState extends State<VideoCutPage> {
         setState(() {
           isPlaying = event.isPlaying;
         });
-      })
+      }),
     );
 
     _subs.add(
@@ -89,12 +85,13 @@ class _VideoCutPageState extends State<VideoCutPage> {
         }
 
         setState(() {
-            position =
-                isPlaying ? max(event.position.toInt() - values.first.toInt(), 0) : 0;
-          });
-        })
+          position =
+              isPlaying
+                  ? max(event.position.toInt() - values.first.toInt(), 0)
+                  : 0;
+        });
+      }),
     );
-
 
     setState(() {
       cover = model.cover;
@@ -105,7 +102,6 @@ class _VideoCutPageState extends State<VideoCutPage> {
 
     await player.setUrl(url: "file://${model.assetAbsolutePath}");
     await player.prepare();
-
   }
 
   @override
@@ -124,7 +120,6 @@ class _VideoCutPageState extends State<VideoCutPage> {
   }
 
   Widget renderSlider() {
-    
     var primaryColor = Get.theme.primaryColor;
     var barColor = Color.lerp(primaryColor, Colors.white, 0.6);
 
@@ -137,7 +132,6 @@ class _VideoCutPageState extends State<VideoCutPage> {
         child: const SizedBox(),
       );
     }
-
 
     return FlutterSlider(
       values: values,
@@ -164,9 +158,10 @@ class _VideoCutPageState extends State<VideoCutPage> {
       tooltip: FlutterSliderTooltip(
         positionOffset: FlutterSliderTooltipPositionOffset(top: 40.w),
         custom: (value) {
-          var text = Duration(
-            seconds: (value as double).toInt(),
-          ).toString().split('.').first;
+          var text =
+              Duration(
+                seconds: (value as double).toInt(),
+              ).toString().split('.').first;
           return Container(
             padding: EdgeInsets.all(10.w),
             decoration: BoxDecoration(
@@ -206,16 +201,11 @@ class _VideoCutPageState extends State<VideoCutPage> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(
         children: [
-          Expanded(
-            child: Center(
-              child: MediaVideoView(controller: player),
-            ),
-          ),
+          Expanded(child: Center(child: MediaVideoView(controller: player))),
           Container(
             alignment: Alignment.center,
             width: double.infinity,
@@ -386,25 +376,26 @@ class _VideoCutPageState extends State<VideoCutPage> {
                       ),
                       onPressed: () async {
                         try {
-
                           EasyLoading.show(
                             status: '提取音频中...'.tr,
                             maskType: EasyLoadingMaskType.black,
                           );
 
-                           var relativePath = model.local.substring(
+                          var relativePath = model.local.substring(
                             0,
                             model.local.lastIndexOf('/'),
                           );
 
-                          await Directory("${Tool.appAssetsPath}$relativePath").create(recursive: true);
+                          await Directory(
+                            "${Tool.appAssetsPath}$relativePath",
+                          ).create(recursive: true);
 
-                          relativePath = "$relativePath/${name.split('.').first}.flac";
+                          relativePath =
+                              "$relativePath/${name.split('.').first}.flac";
 
                           var output = '${Tool.appAssetsPath}$relativePath';
 
                           var outputFile = File(output);
-
 
                           handle([bool del = true]) async {
                             if (del) {
@@ -415,7 +406,10 @@ class _VideoCutPageState extends State<VideoCutPage> {
                               output: outputFile.path,
                               startTime: values.first,
                               endTime: values.last,
-                              coverPath: cover.startsWith("/")?"${Tool.coverStorePath}$cover":cover,
+                              coverPath:
+                                  cover.startsWith("/")
+                                      ? "${Tool.coverStorePath}$cover"
+                                      : cover,
                               onProgress: (progress, duration) async {
                                 EasyLoading.showProgress(
                                   progress / 100,
@@ -478,16 +472,18 @@ class _VideoCutPageState extends State<VideoCutPage> {
                             status: '提取音频中...'.tr,
                             maskType: EasyLoadingMaskType.black,
                           );
-                          
-                          
+
                           var relativePath = model.local.substring(
                             0,
                             model.local.lastIndexOf('/'),
                           );
 
-                          await Directory("${Tool.appAssetsPath}$relativePath").create(recursive: true);
+                          await Directory(
+                            "${Tool.appAssetsPath}$relativePath",
+                          ).create(recursive: true);
 
-                          relativePath = "$relativePath/${name.split('.').first}.mp4";
+                          relativePath =
+                              "$relativePath/${name.split('.').first}.mp4";
 
                           var output = '${Tool.appAssetsPath}$relativePath';
 

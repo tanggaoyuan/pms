@@ -5,7 +5,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:media_player_plugin/export.dart';
+import 'package:media_player_plugin/media_video_view.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/db/export.dart';
 import 'package:pms/pages/album/export.dart';
@@ -230,101 +230,90 @@ class VideoAlbumPage extends GetView<VideoModelController> {
         return Positioned.fill(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 500),
-            child: videoControlFlag
-                ? GestureDetector(
-                    onTap: () {
-                      controller.showVideoControl();
-                      controller.hideVideoControl(3);
-                    },
-                    child: Container(
-                      color: Colors.black.withValues(alpha: .3),
-                      child: SafeArea(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                Get.back();
-                              },
-                              icon: Icon(
-                                Icons.arrow_back_ios,
-                                color: Colors.white,
-                                size: 30.w,
+            child:
+                videoControlFlag
+                    ? GestureDetector(
+                      onTap: () {
+                        controller.showVideoControl();
+                        controller.hideVideoControl(3);
+                      },
+                      child: Container(
+                        color: Colors.black.withValues(alpha: .3),
+                        child: SafeArea(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  Get.back();
+                                },
+                                icon: Icon(
+                                  Icons.arrow_back_ios,
+                                  color: Colors.white,
+                                  size: 30.w,
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      controller.showVideoControl();
-                                      controller.hideVideoControl(3);
-                                      if (isPlaying) {
-                                        controller.pause();
-                                      } else {
-                                        controller.play();
-                                      }
-                                    },
-                                    icon: ImgComp(
-                                      source: isPlaying
-                                          ? ImgCompIcons.pause
-                                          : ImgCompIcons.play,
-                                      color: Colors.white,
-                                      width: 50.w,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      controller.showVideoControl();
-                                      controller.hideVideoControl(3);
-                                      controller.togglePlayMode();
-                                    },
-                                    icon: ImgComp(
-                                      source: controller.playMode == 0
-                                          ? ImgCompIcons.orderPlay
-                                          : ImgCompIcons.singleTunePlay,
-                                      width: 50.w,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  InkWell(
-                                    onTap: () {
-                                      controller.setVideoMode(1);
-                                      VideoFullPage.to();
-                                    },
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        right: 20.w,
-                                        bottom: 14.w,
-                                        left: 14.w,
-                                      ),
-                                      child: SizedBox(
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        controller.showVideoControl();
+                                        controller.hideVideoControl(3);
+                                        if (isPlaying) {
+                                          controller.pause();
+                                        } else {
+                                          controller.play();
+                                        }
+                                      },
+                                      icon: ImgComp(
+                                        source:
+                                            isPlaying
+                                                ? ImgCompIcons.pause
+                                                : ImgCompIcons.play,
+                                        color: Colors.white,
                                         width: 50.w,
-                                        height: 50.w,
-                                        child: Stack(
-                                          children: [
-                                            Positioned(
-                                              bottom: 0.w,
-                                              right: 0.w,
-                                              child: Opacity(
-                                                opacity: 0.8,
-                                                child: FaIcon(
-                                                  FontAwesomeIcons.mobile,
-                                                  color: Colors.white,
-                                                  size: 46.w,
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              bottom: 0.w,
-                                              right: 0.w,
-                                              child: Opacity(
-                                                opacity: 0.7,
-                                                child: RotatedBox(
-                                                  quarterTurns: 3,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        controller.showVideoControl();
+                                        controller.hideVideoControl(3);
+                                        controller.togglePlayMode();
+                                      },
+                                      icon: ImgComp(
+                                        source:
+                                            controller.playMode == 0
+                                                ? ImgCompIcons.orderPlay
+                                                : ImgCompIcons.singleTunePlay,
+                                        width: 50.w,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    InkWell(
+                                      onTap: () {
+                                        controller.setVideoMode(1);
+                                        VideoFullPage.to();
+                                      },
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                          right: 20.w,
+                                          bottom: 14.w,
+                                          left: 14.w,
+                                        ),
+                                        child: SizedBox(
+                                          width: 50.w,
+                                          height: 50.w,
+                                          child: Stack(
+                                            children: [
+                                              Positioned(
+                                                bottom: 0.w,
+                                                right: 0.w,
+                                                child: Opacity(
+                                                  opacity: 0.8,
                                                   child: FaIcon(
                                                     FontAwesomeIcons.mobile,
                                                     color: Colors.white,
@@ -332,68 +321,82 @@ class VideoAlbumPage extends GetView<VideoModelController> {
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                              Positioned(
+                                                bottom: 0.w,
+                                                right: 0.w,
+                                                child: Opacity(
+                                                  opacity: 0.7,
+                                                  child: RotatedBox(
+                                                    quarterTurns: 3,
+                                                    child: FaIcon(
+                                                      FontAwesomeIcons.mobile,
+                                                      color: Colors.white,
+                                                      size: 46.w,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                height: 40.w,
+                                child: Text(
+                                  StringNormalizer.normalize(header.name),
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22.sp,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 20.w),
-                              height: 40.w,
-                              child: Text(
-                                StringNormalizer.normalize(header.name),
-                                maxLines: 1,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22.sp,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20.w,
-                              ).copyWith(bottom: 20.w),
-                              child: ProgressBar(
-                                progress: position,
-                                buffered: buffered,
-                                total: duration,
-                                progressBarColor: Colors.white,
-                                baseBarColor: Colors.white.withValues(
-                                  alpha: .24,
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 20.w,
+                                ).copyWith(bottom: 20.w),
+                                child: ProgressBar(
+                                  progress: position,
+                                  buffered: buffered,
+                                  total: duration,
+                                  progressBarColor: Colors.white,
+                                  baseBarColor: Colors.white.withValues(
+                                    alpha: .24,
+                                  ),
+                                  bufferedBarColor: Colors.white.withValues(
+                                    alpha: .24,
+                                  ),
+                                  thumbColor: Colors.white,
+                                  barHeight: 6.w,
+                                  thumbRadius: 10.w,
+                                  thumbGlowRadius: 24.w,
+                                  timeLabelTextStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24.sp,
+                                  ),
+                                  onSeek: (duration) {
+                                    controller.seek(duration);
+                                  },
+                                  onDragStart: (details) {
+                                    controller.showVideoControl();
+                                  },
+                                  onDragEnd: () {
+                                    controller.hideVideoControl(3);
+                                  },
                                 ),
-                                bufferedBarColor: Colors.white.withValues(
-                                  alpha: .24,
-                                ),
-                                thumbColor: Colors.white,
-                                barHeight: 6.w,
-                                thumbRadius: 10.w,
-                                thumbGlowRadius: 24.w,
-                                timeLabelTextStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24.sp,
-                                ),
-                                onSeek: (duration) {
-                                  controller.seek(duration);
-                                },
-                                onDragStart: (details) {
-                                  controller.showVideoControl();
-                                },
-                                onDragEnd: () {
-                                  controller.hideVideoControl(3);
-                                },
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  )
-                : const SizedBox(),
+                    )
+                    : const SizedBox(),
           ),
         );
       }
@@ -418,9 +421,10 @@ class VideoAlbumPage extends GetView<VideoModelController> {
                 width: double.infinity,
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
-                  child: playIndex.value >= 0 && isNone && videos.isNotEmpty
-                      ? renderVideo()
-                      : renderCover(),
+                  child:
+                      playIndex.value >= 0 && isNone && videos.isNotEmpty
+                          ? renderVideo()
+                          : renderCover(),
                 ),
               ),
               renderVideoControllBar(),
@@ -537,9 +541,10 @@ class VideoAlbumPage extends GetView<VideoModelController> {
                   child: Row(
                     children: [
                       ImgComp(
-                        source: video.cover.isEmpty
-                            ? ImgCompIcons.mainCover
-                            : video.cover,
+                        source:
+                            video.cover.isEmpty
+                                ? ImgCompIcons.mainCover
+                                : video.cover,
                         referer: user.extra.referer,
                         cacheKey: video.cacheKey,
                         width: 100.w,
@@ -564,11 +569,15 @@ class VideoAlbumPage extends GetView<VideoModelController> {
                             Opacity(
                               opacity: 0.6,
                               child: Text(
-                                StringNormalizer.normalize([
-                                  video.platform.name,
-                                  video.artist,
-                                  video.albumName,
-                                ].where((item) => item.isNotEmpty).join(' • ')),
+                                StringNormalizer.normalize(
+                                  [
+                                        video.platform.name,
+                                        video.artist,
+                                        video.albumName,
+                                      ]
+                                      .where((item) => item.isNotEmpty)
+                                      .join(' • '),
+                                ),
                                 style: TextStyle(
                                   fontSize: 22.sp,
                                   overflow: TextOverflow.ellipsis,

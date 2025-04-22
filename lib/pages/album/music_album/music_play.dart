@@ -4,10 +4,10 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:media_player_plugin/media_player_plugin.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/components/export.dart';
 import 'package:pms/utils/export.dart';
-import 'package:media_player_plugin/export.dart';
 import 'package:string_normalizer/string_normalizer.dart';
 
 class MusicPlayPage extends StatefulWidget {
@@ -88,11 +88,13 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
               ),
               SizedBox(height: 8.w),
               Text(
-                StringNormalizer.normalize([
-                  currentSong.platform.name,
-                  currentSong.artist,
-                  currentSong.albumName,
-                ].where((item) => item.isNotEmpty).join(' • ')),
+                StringNormalizer.normalize(
+                  [
+                    currentSong.platform.name,
+                    currentSong.artist,
+                    currentSong.albumName,
+                  ].where((item) => item.isNotEmpty).join(' • '),
+                ),
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: .9),
                   fontSize: 24.sp,
@@ -178,9 +180,10 @@ class _MusicPlayPageState extends State<MusicPlayPage> {
                     },
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 500),
-                      child: showLyric.value
-                          ? renderLyric(context)
-                          : renderCover(),
+                      child:
+                          showLyric.value
+                              ? renderLyric(context)
+                              : renderCover(),
                     ),
                   ),
                 ),

@@ -1,12 +1,8 @@
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pms/bindings/export.dart';
 import 'package:pms/components/cache_buttom.dart';
-import 'package:pms/db/media.dart';
-import 'package:pms/pages/export.dart';
-import 'package:pms/utils/export.dart';
 import 'package:simple_ruler_picker/simple_ruler_picker.dart';
 
 class SettingPage extends GetView<SettingController> {
@@ -130,100 +126,6 @@ class SettingPage extends GetView<SettingController> {
       });
     }
 
-    Widget renderHeadset() {
-      return Obx(() {
-        var audioController = Get.find<AudioController>();
-
-        return Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: controller.theme.appBarTheme.backgroundColor,
-            borderRadius: BorderRadius.circular(20.w),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      var fc = controller.theme.primaryColor.withValues(
-                        alpha: .8,
-                      );
-                      var title = TextStyle(
-                        fontSize: 28.sp,
-                        height: 2,
-                        color: fc,
-                      );
-                      var text = TextStyle(fontSize: 26.sp, color: fc);
-                      Tool.showBottomSheet(
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(20.w),
-                          child: ListView(
-                            children: [
-                              Center(
-                                child: Text(
-                                  "耳机辅助功能说明".tr,
-                                  style: TextStyle(fontSize: 30.sp),
-                                ),
-                              ),
-                              SizedBox(height: 20.w),
-                              Text('启用/关闭：'.tr, style: title),
-                              Text('• 通过长按/3次点击进行切换'.tr, style: text),
-                              SizedBox(height: 20.w),
-                              Text('辅助功能关闭情况：'.tr, style: title),
-                              Text('• 中键点击播放/暂停，双击播放下一首'.tr, style: text),
-                              Text('• 音量键调节声音'.tr, style: text),
-                              SizedBox(height: 20.w),
-                              Text('辅助功能开启情况：'.tr, style: title),
-                              SizedBox(height: 10.w),
-                              Text('• 正常模式'.tr, style: text),
-                              SizedBox(height: 10.w),
-                              Text('  - 中键点击播放/暂停，双击切换模式'.tr, style: text),
-                              Text('  - 音量键调节声音'.tr, style: text),
-                              SizedBox(height: 10.w),
-                              Text('• 歌曲切换模式'.tr, style: text),
-                              SizedBox(height: 10.w),
-                              Text(
-                                '  - 中键点击切换播放模式列表播放/单曲循环/随机播放，双击切换模式'.tr,
-                                style: text,
-                              ),
-                              Text('  - 音量键上一曲/下一曲'.tr, style: text),
-                              SizedBox(height: 10.w),
-                              Text('• 定时模式'.tr, style: text),
-                              SizedBox(height: 10.w),
-                              Text('  - 中键点击启用/关闭定时，双击切换模式'.tr, style: text),
-                              Text('  - 音量键增加/减少时间，单位为15分钟'.tr, style: text),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                    icon: FaIcon(FontAwesomeIcons.circleInfo, size: 30.w),
-                  ),
-                  Expanded(
-                    child: Text('耳机辅助功能'.tr, style: TextStyle(fontSize: 28.sp)),
-                  ),
-                  Transform.scale(
-                    scale: 0.6,
-                    child: Switch(
-                      value: audioController.enableHeadsetMode.value,
-                      onChanged: (value) {
-                        // audioController.toggleHeadsetMode();
-                      },
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      });
-    }
-
     Widget renderTimeMode() {
       return Obx(() {
         var audioController = Get.find<AudioController>();
@@ -308,16 +210,6 @@ class SettingPage extends GetView<SettingController> {
             renderTimeMode(),
             SizedBox(height: 20.w),
             const CacheButtomComp(),
-            SizedBox(height: 20.w),
-            OutlinedButton(onPressed: () async {
-              var results = await MediaDbModel.songs();
-
-              results.forEach((item){
-                Tool.log(item.toMap());
-              });
-
-
-            }, child: Text("xxxxxxxxxxxxx")),
           ],
         ),
       ),

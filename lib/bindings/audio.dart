@@ -115,7 +115,6 @@ class AudioController extends GetxController {
   }
 
   play(int index, [int? albumId]) async {
-
     if (albumId != null) {
       this.albumId.value = albumId;
     }
@@ -148,6 +147,7 @@ class AudioController extends GetxController {
     await player.setUrl(
       url: url,
       urlHeader: headers,
+      coverHeader: headers,
       cover: artUri,
       title: song.name,
       artist: song.artist,
