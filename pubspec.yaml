@@ -68,15 +68,15 @@ dependencies:
   encrypt: ^5.0.3
   pointycastle: ^3.9.1
   # 安卓
-  ffmpeg_kit_flutter:
-    git:
-      url: https://github.com/i-jared/ffmpeg_kit_flutter
-  # ios
   # ffmpeg_kit_flutter:
   #   git:
-  #     url: https://github.com/carl-designlibro/ffmpeg-kit
-  #     path: flutter/flutter
-  #     ref: flutter_fix_retired_v6.0.3
+  #     url: https://github.com/i-jared/ffmpeg_kit_flutter
+  # ios
+  ffmpeg_kit_flutter:
+    git:
+      url: https://github.com/carl-designlibro/ffmpeg-kit
+      path: flutter/flutter
+      ref: flutter_fix_retired_v6.0.3
   media_player_plugin:
     path: ../flutter_media_player_plugin/
   sanitize_filename: ^1.0.5

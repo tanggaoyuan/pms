@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:media_player_plugin/media_audio_player.dart';
 import 'package:pms/db/export.dart';
+import 'package:pms/utils/tool.dart';
 
 enum PlayMode { order, one, random }
 
@@ -135,7 +136,7 @@ class AudioController extends GetxController {
         artUri = song.cover;
       }
     } else {
-      artUri = 'file://${song.cover}';
+      artUri = 'file://${Tool.coverStorePath}${song.cover}';
     }
 
     var headers = {
