@@ -82,7 +82,7 @@ SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_native_splash: 6cad9122ea0fad137d23137dd14b937f3e90b145
   LXFProtocolTool: 34dbdb98b3ed7d53465709797e3654f9d29ecd40
-  media_player_plugin: dd3150f32ccf900a9d04cefc3b9d14ded029786b
+  media_player_plugin: adb1c63b5e118c9f962b0c2b24d0e09d682d515f
   pasteboard: 49088aeb6119d51f976a421db60d8e1ab079b63c
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
