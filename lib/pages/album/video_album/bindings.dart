@@ -357,7 +357,7 @@ class VideoModelController extends GetxController {
         artUri = song.cover;
       }
     } else {
-      artUri = 'file://${song.cover}';
+      artUri = 'file://${Tool.coverStorePath}${song.cover}';
     }
 
     var headers = {
