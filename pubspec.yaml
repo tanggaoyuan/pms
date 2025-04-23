@@ -43,8 +43,6 @@ dependencies:
   switch_orientation: ^0.0.1
   flutter_xlider: ^3.5.0
   lyric_xx: ^0.5.1
-  pasteboard: ^0.3.0
-  volume_controller: ^2.0.8
   simple_ruler_picker: ^0.1.1
   flutter_cache_manager: ^3.4.1
   flutter_easyloading: ^3.0.5
