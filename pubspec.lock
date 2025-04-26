@@ -500,9 +500,10 @@ packages:
   media_player_plugin:
     dependency: "direct main"
     description:
-      path: "../flutter_media_player_plugin"
-      relative: true
-    source: path
+      name: media_player_plugin
+      sha256: b14f2daac4603cae51a22580e5ac295c3aa398eec02a90e11f3b967c476d57ab
+      url: "https://pub.flutter-io.cn"
+    source: hosted
     version: "0.0.1"
   meta:
     dependency: transitive

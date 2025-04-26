@@ -41,8 +41,8 @@
 
 - 图片缓存 [cached_network_image](https://pub-web.flutter-io.cn/packages/cached_network_image)
 
-- 播放器 [media_player_plugin]()
-
 - 播放进度 [audio_video_progress_bar](https://pub-web.flutter-io.cn/packages/audio_video_progress_bar)
 
 - 图标库 [font_awesome_flutter](https://pub-web.flutter-io.cn/packages/font_awesome_flutter)
+
+- 媒体播放器 [media_player_plugin](https://pub-web.flutter-io.cn/packages/media_player_plugin)
